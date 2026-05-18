@@ -1,0 +1,39 @@
+{
+  "name": "James Moorman",
+  "title": "AI-Accelerated Software Development & Operations Technology Leader",
+  "location": "Eden Prairie, MN",
+  "email": "jpmoorman@gmail.com",
+  "phone": "651-270-4656",
+  "resumeDownload": "/James_Moorman_Figma_Sales_AI_Engineer_Resume.md",
+  "summary": "I build practical AI-enabled internal tools that connect disconnected systems, replace fragile spreadsheets, guide frontline decisions, and turn operational knowledge into repeatable software workflows.",
+  "targetRole": "Sales AI Engineer",
+  "highlights": [
+    {
+      "label": "Order accuracy",
+      "value": "99.7%",
+      "detail": "from 97% in 3 months"
+    },
+    {
+      "label": "Shipment capacity",
+      "value": "4,200/day",
+      "detail": "from 1,800/day"
+    },
+    {
+      "label": "Annual savings",
+      "value": "$2.2M",
+      "detail": "single-facility overhead reduction"
+    },
+    {
+      "label": "Documentation cycle",
+      "value": "50% faster",
+      "detail": "8 weeks to 4 weeks"
+    }
+  ],
+  "skills": {
+    "AI": ["OpenAI Codex", "Claude Code", "GitHub Copilot", "Prompt frameworks", "Agent-style workflows", "Custom AI/development skills"],
+    "Web Apps": ["React", "Python", "APIs", "Internal web tools", "Reusable UI patterns", "Workflow surfaces"],
+    "Data": ["SQL", "Dataverse", "Cosmos DB", "Power BI", "Dashboards", "Operational analytics"],
+    "Automation": ["Power Automate", "Approval workflows", "Document review support", "Reporting automation", "Workflow tracking"],
+    "Systems": ["Salesforce-adjacent workflows", "Warehouse systems", "Manufacturing systems", "Document control", "MediaWiki", "Windchill"]
+  }
+}

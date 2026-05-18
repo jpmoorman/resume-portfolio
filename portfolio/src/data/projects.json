@@ -1,0 +1,68 @@
+[
+  {
+    "id": "warehouse-management",
+    "title": "Warehouse Management and Correction Workflows",
+    "category": "Automation",
+    "shortDescription": "Operational dashboards and guided workflows that improved fulfillment accuracy, throughput, and correction timing.",
+    "problem": "Distribution work depended on tribal knowledge, disconnected order data, and reactive correction after errors had already affected shipments.",
+    "solution": "Built a custom warehouse management and operational dashboard system that surfaced order, picking, routing, and fulfillment issues before they became shipment failures.",
+    "tools": ["React", "Python", "SQL", "Warehouse systems", "Pick-to-light workflows", "Operational dashboards"],
+    "impact": ["Improved order accuracy from 97% to 99.7% in 3 months", "Increased shipment capacity from 1,800 to 4,200 shipments per day", "Reduced overhead costs by $2.2M annually", "Identified $634k annual incorrect-order overnight shipping exposure"],
+    "screenshots": []
+  },
+  {
+    "id": "orbit-document-viewer",
+    "title": "Orbit Controlled Document Viewer",
+    "category": "Quality",
+    "shortDescription": "Controlled-access document workflow connecting production users to approved source documents.",
+    "problem": "Production teams needed reliable access to the right approved source documents without relying on uncontrolled local copies or manual searches.",
+    "solution": "Developed Orbit, an internal controlled-access document viewer that connects production context to approved documents from systems such as Windchill and Grand Avenue.",
+    "tools": ["React", "Python", "Document control systems", "Windchill", "Grand Avenue", "Access-controlled workflows"],
+    "impact": ["Reduced risk from uncontrolled local document copies", "Improved consistency of production document access", "Created reusable lookup and validation patterns for future tools"],
+    "screenshots": []
+  },
+  {
+    "id": "ai-development-patterns",
+    "title": "AI-Assisted Internal Development Patterns",
+    "category": "AI",
+    "shortDescription": "Reusable AI/development skills, prompt frameworks, and implementation templates for faster internal software delivery.",
+    "problem": "Internal workflow ideas were slow to turn into working tools because each project repeated discovery, scaffolding, documentation, and implementation decisions.",
+    "solution": "Created reusable prompt frameworks, custom AI/development skills, agent-style task patterns, React interface patterns, and Python service patterns to move from prototype to usable workflow faster.",
+    "tools": ["OpenAI Codex", "Claude Code", "GitHub Copilot", "React", "Python", "Prompt frameworks"],
+    "impact": ["Accelerated internal software prototyping", "Improved consistency across Starkey internal tools", "Created repeatable patterns for workflow design, documentation support, and implementation"],
+    "screenshots": []
+  },
+  {
+    "id": "validation-graphing",
+    "title": "Validation Graphing and Research Tools",
+    "category": "Data",
+    "shortDescription": "Data tools that shortened validation documentation and surfaced calculation errors.",
+    "problem": "Validation documentation required manual graphing and review work that consumed engineering time and hid calculation issues until late in the process.",
+    "solution": "Built graphing and mapping software for research and validation teams, turning manual analysis steps into reusable data workflows.",
+    "tools": ["Python", "Data visualization", "Validation workflows", "Operational analytics"],
+    "impact": ["Reduced documentation time from 8 weeks to 4 weeks", "Exposed previous calculation errors", "Gave engineering teams more time for software stabilization"],
+    "screenshots": []
+  },
+  {
+    "id": "mes-electronic-traveler",
+    "title": "MES-Style Manufacturing and Electronic Traveler Tools",
+    "category": "Manufacturing",
+    "shortDescription": "Manufacturing workflows that connected job metadata, approved documents, and production execution.",
+    "problem": "Manufacturing execution relied on paper travelers, local document copies, and manual interpretation of job context.",
+    "solution": "Built MES-style internal tools and an electronic traveler workflow that connected job metadata to approved source documents and guided production work.",
+    "tools": ["React", "Python", "Manufacturing systems", "Document control", "Workflow validation"],
+    "impact": ["Improved production visibility and traceability", "Reduced reliance on paper travelers", "Standardized workflow behavior across internal tools"],
+    "screenshots": []
+  },
+  {
+    "id": "program-management-platform",
+    "title": "Program and Project Management Platform",
+    "category": "Web Apps",
+    "shortDescription": "Shared program information, dashboards, task accountability, and automated reporting built on Microsoft Power Platform.",
+    "problem": "Program information was duplicated across spreadsheets, leading to outdated status, inconsistent reporting, and manual leadership updates.",
+    "solution": "Built custom program and project management tools using Power Platform and Dataverse to centralize program information and automate leadership reporting.",
+    "tools": ["Power Apps", "Power Automate", "Dataverse", "Power BI", "Automated reporting"],
+    "impact": ["Improved consistency across program organization", "Reduced duplicate and outdated spreadsheet information", "Created dashboards for task accountability and leadership updates"],
+    "screenshots": []
+  }
+]

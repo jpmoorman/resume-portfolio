@@ -5,3 +5,7 @@
 .DS_Store
 Thumbs.db
 portfolio/*-preview.png
+node_modules/
+dist/
+portfolio/node_modules/
+portfolio/dist/

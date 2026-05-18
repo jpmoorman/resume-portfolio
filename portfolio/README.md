@@ -1,16 +1,45 @@
-# Portfolio Demo Site
+# James Moorman Portfolio
 
-Static portfolio/demo site for the Figma Sales AI Engineer application.
+React + Vite interactive resume and project portfolio for an executive technical portfolio.
 
-Open `index.html` in a browser to view locally.
+## Local Development
 
-## Purpose
+```powershell
+npm install
+npm run dev
+```
 
-This site is meant to show evidence that a resume cannot easily carry:
+## Build
 
-- Shipped internal workflow systems.
-- Measurable operational impact.
-- React/Python implementation framing.
-- Reusable AI/development patterns.
-- Practical workflow triage and audit-trail thinking.
+```powershell
+npm run build
+```
 
+The static production output is generated in `dist/`.
+
+## Project Data
+
+Projects are stored in `src/data/projects.json`. Add or edit entries there. Each project supports:
+
+- `title`
+- `category`
+- `shortDescription`
+- `problem`
+- `solution`
+- `tools`
+- `impact`
+- `screenshots`
+
+## Cloudflare Pages Deployment
+
+1. Push this repository to GitHub.
+2. In Cloudflare, open **Workers & Pages**.
+3. Choose **Create application**.
+4. Choose **Pages**.
+5. Connect the GitHub repository.
+6. Set the project root directory to `portfolio`.
+7. Set the build command to `npm run build`.
+8. Set the build output directory to `dist`.
+9. Deploy.
+
+No backend, serverless functions, or environment variables are required.

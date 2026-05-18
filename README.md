@@ -13,6 +13,21 @@ This repository tracks resume materials, job applications, and project evidence 
 
 - Figma - Sales AI Engineer
 
-## Portfolio Demo
+## Portfolio
 
-Open `portfolio/index.html` in a browser to view the local demo site.
+The portfolio is a React + Vite static site in `portfolio/`.
+
+Local development:
+
+```powershell
+cd portfolio
+npm install
+npm run dev
+```
+
+Cloudflare Pages settings:
+
+- Root directory: `portfolio`
+- Build command: `npm run build`
+- Build output directory: `dist`
+- Backend: none required
