@@ -3,7 +3,7 @@ Eden Prairie, MN 55347 | 651-270-4656 | jpmoorman@gmail.com
 
 ## Senior Manager, AI-Accelerated Software Development & Operations Technology
 
-Software development and operations technology leader building AI-enabled workflows, internal tools, data systems, and automation across manufacturing, quality, distribution, program management, and commercial operations. Strong track record connecting disconnected systems, replacing fragile Excel-based processes, and turning tribal knowledge into scalable software tools, dashboards, and decision-support workflows. Hands-on builder using AI-assisted development with GitHub Copilot, OpenAI Codex, Claude Code, OpenCode, CLI-based agents, IDE-based assistants, Microsoft Power Platform, Azure, Cosmos DB, SQL, APIs, Salesforce-adjacent workflows, warehouse systems, manufacturing systems, and document control platforms.
+Software development and operations technology leader building AI-enabled workflows, internal tools, data systems, and automation across manufacturing, quality, distribution, program management, and commercial operations. Strong track record connecting disconnected systems, replacing fragile Excel-based processes, and turning tribal knowledge into scalable software tools, dashboards, and decision-support workflows. Hands-on builder using AI-assisted development with GitHub Copilot, OpenAI Codex, Claude Code, OpenCode, CLI-based agents, custom AI/development skills, React front ends, Python back ends, Microsoft Power Platform, Azure, Cosmos DB, SQL, APIs, Salesforce-adjacent workflows, warehouse systems, manufacturing systems, and document control platforms.
 
 ## Experience
 
@@ -11,7 +11,8 @@ Software development and operations technology leader building AI-enabled workfl
 **Senior Manager, AI-Accelerated Software Development & Operations Technology** | Previously Program Manager
 
 - Lead development of internal software, AI-enabled workflows, operational dashboards, and system integrations across manufacturing, quality, distribution, program management, Government Services, and commercial operations.
-- Use AI-assisted development tools including GitHub Copilot, OpenAI Codex, Claude Code, OpenCode, CLI-based agents, and IDE-based coding assistants to accelerate internal software development, prototype workflows, debug systems, generate documentation, and move business ideas into working tools faster.
+- Use AI-assisted development tools including GitHub Copilot, OpenAI Codex, Claude Code, OpenCode, CLI-based agents, custom AI/development skills, and IDE-based coding assistants to accelerate internal software development, prototype workflows, debug systems, generate documentation, and move business ideas into working tools faster.
+- Build unified internal software experiences with React front ends and Python back ends, creating shared interface patterns and reusable back-end functionality for Starkey operational tools.
 - Replace fragmented Excel-based processes with centralized data models, shared dashboards, workflow tools, and integrated business systems.
 - Connect disconnected systems including Salesforce-adjacent workflows, warehouse systems, document control platforms, Microsoft Power Platform, Dataverse, Azure, Cosmos DB, SQL, Microsoft Fabric concepts, APIs, and custom web tools.
 - Turn tribal knowledge into guided software workflows that improve decision quality, reduce rework, and make complex operational decisions easier for frontline users.
@@ -21,7 +22,7 @@ Software development and operations technology leader building AI-enabled workfl
 **Selected Internal Software, AI, and Operations Technology Work**
 
 - Built and led multiple AI-enabled and AI-assisted internal software initiatives, including tools for operational research, status summarization, documentation workflows, approval tracking, and accelerated software development.
-- Developed reusable AI and automation patterns for moving from prototype to usable workflows, including prompt frameworks, agent-style task handling, document review support, and implementation templates.
+- Developed reusable AI, front-end, and back-end patterns for moving from prototype to usable workflows, including prompt frameworks, custom AI/development skills, agent-style task handling, document review support, implementation templates, React interface components, and Python service patterns.
 - Created approval reminder and workflow tracking systems across multiple document control systems to reduce delays, improve accountability, and surface overdue approvals before they block execution.
 - Built global scorecards and operational dashboards that consolidate performance metrics across sites, reducing dependency on manually maintained Excel reports.
 - Developed automated reporting for tax, quality, program, and operational use cases.
@@ -39,6 +40,7 @@ Software development and operations technology leader building AI-enabled workfl
 - Built a custom manufacturing MES-style system to improve production visibility, traceability, and operational execution.
 - Developed Orbit, an internal controlled-access document viewer that gives production teams consistent web-based access to approved source documents from systems such as Windchill and Grand Avenue.
 - Built an electronic traveler system for injection molding to guide production work, connect job metadata to the correct controlled documents, and reduce reliance on paper travelers or local document copies.
+- Standardized Starkey internal application look, navigation, and workflow behavior across React-based tools while reusing Python back-end patterns for document lookup, operational data access, validation logic, and workflow actions.
 - Created research and validation graphing tools that reduced documentation time from 8 weeks to 4 weeks, exposed previous calculation errors, and gave engineering teams more time for software stabilization.
 - Evaluated packaging, dimensional weight, and shipping strategy to reduce annual expenditures by approximately $1.7M; achieved approximately 12% shipping savings by enabling a shift from 2-day to 3-day shipping through increased daily shipping capacity.
 
@@ -85,11 +87,11 @@ Software development and operations technology leader building AI-enabled workfl
 
 ## Skills
 
-**AI-Assisted Software Development Tools:** GitHub Copilot | OpenAI Codex | Claude Code | OpenCode | AI coding agents | CLI-based development | IDE-based development | VS Code | GitHub | Prompt frameworks | Agent workflows
+**AI-Assisted Software Development Tools:** GitHub Copilot | OpenAI Codex | Claude Code | OpenCode | AI coding agents | CLI-based development | IDE-based development | Custom AI/development skills | VS Code | GitHub | Prompt frameworks | Agent workflows
 
-**AI and Automation:** AI-enabled workflow design | AI-assisted software development | LLM workflow prototyping | Internal tool development | Workflow automation | Document review support | Approval automation | Operational research tools
+**AI and Automation:** AI-enabled workflow design | AI-assisted software development | LLM workflow prototyping | Internal tool development | Workflow automation | Document review support | Approval automation | Operational research tools | Reusable implementation patterns
 
-**Software and Data Systems:** SQL | APIs | Azure | Azure Cosmos DB | Microsoft Fabric concepts | Microsoft Power Platform | Microsoft Dataverse | Power Apps | Power Automate | Power BI | Internal web tools | Dashboard development
+**Software and Data Systems:** React | Python | SQL | APIs | Azure | Azure Cosmos DB | Microsoft Fabric concepts | Microsoft Power Platform | Microsoft Dataverse | Power Apps | Power Automate | Power BI | Internal web tools | Dashboard development
 
 **Business and Operations Systems:** Salesforce-adjacent workflows | CRM data hygiene | Warehouse systems | Pick-to-light integration | Manufacturing systems / MES | Electronic travelers | Document control systems | MediaWiki | Windchill | Grand Avenue | Approval workflows
 
