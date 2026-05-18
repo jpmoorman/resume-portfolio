@@ -29,11 +29,31 @@ const categoryIcons = {
 };
 
 const toolIconMap = {
-  "OpenAI Codex": { label: "CX", className: "codex" },
-  "Claude Code": { label: "CL", className: "claude" },
-  OpenCode: { label: "OC", className: "opencode" },
-  Windsurf: { label: "WS", className: "windsurf" },
-  "Microsoft Fabric": { label: "FB", className: "fabric" },
+  "OpenAI Codex": {
+    src: "/tool-icons/codex-openai.svg",
+    alt: "OpenAI logo",
+    className: "codex",
+  },
+  "Claude Code": {
+    src: "/tool-icons/claude-anthropic.svg",
+    alt: "Anthropic logo",
+    className: "claude",
+  },
+  OpenCode: {
+    src: "/tool-icons/opencode.ico",
+    alt: "OpenCode logo",
+    className: "opencode",
+  },
+  Windsurf: {
+    src: "/tool-icons/windsurf.ico",
+    alt: "Windsurf logo",
+    className: "windsurf",
+  },
+  "Microsoft Fabric": {
+    src: "/tool-icons/fabric-microsoft.svg",
+    alt: "Microsoft logo",
+    className: "fabric",
+  },
 };
 
 function App() {
@@ -298,7 +318,9 @@ function ToolBadge({ text }) {
 
   return (
     <span className={`tool-badge ${toolIcon.className}`}>
-      <i aria-hidden="true">{toolIcon.label}</i>
+      <i aria-hidden="true">
+        <img src={toolIcon.src} alt={toolIcon.alt} />
+      </i>
       {text}
     </span>
   );
