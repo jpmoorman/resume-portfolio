@@ -206,10 +206,9 @@ function Resume() {
     <section id="resume" className="section resume-section">
       <div className="resume-copy">
         <p className="eyebrow">Resume</p>
-        <h2>Built for the role, backed by project evidence.</h2>
+        <h2>Resume preview before download.</h2>
         <p>
-          The resume explains the arc. This site shows the operating pattern: find the broken workflow,
-          connect the systems, create a reliable interface, measure adoption, and reuse the pattern.
+          This is a web preview in a print-style format so reviewers can scan experience quickly before downloading the full resume file.
         </p>
         <a className="button primary" href={profile.resumeDownload} download>
           <Download size={18} aria-hidden="true" />
@@ -217,22 +216,52 @@ function Resume() {
         </a>
       </div>
 
-      <div className="resume-timeline" aria-label="Experience timeline">
-        <article>
-          <span>2022 - Present</span>
-          <h3>Starkey Laboratories</h3>
-          <p>AI-enabled internal tools, React/Python workflow systems, operational dashboards, and cross-functional program execution.</p>
-        </article>
-        <article>
-          <span>2020 - 2022</span>
-          <h3>Monteris Medical</h3>
-          <p>Product development, validation, launch execution, and controlled documentation systems.</p>
-        </article>
-        <article>
-          <span>2018 - 2020</span>
-          <h3>Donaldson</h3>
-          <p>Product management, strategic planning, customer solution design, and commercial execution.</p>
-        </article>
+      <div className="resume-preview" aria-label="Print-style resume preview">
+        <header>
+          <h3>{profile.name}</h3>
+          <p>{profile.location} | {profile.phone} | {profile.email}</p>
+        </header>
+
+        <section>
+          <h4>Summary</h4>
+          <p>
+            Software development and operations technology leader building AI-enabled workflows,
+            internal tools, data systems, and automation across manufacturing, quality, distribution,
+            program management, and commercial operations.
+          </p>
+        </section>
+
+        <section>
+          <h4>Experience</h4>
+          <article>
+            <p className="role-line"><strong>Starkey Laboratories</strong> | Senior Manager, AI-Accelerated Software Development & Operations Technology | 2022 - Present</p>
+            <ul>
+              <li>Built unified internal software experiences with React front ends and Python back ends.</li>
+              <li>Improved order accuracy from 97% to 99.7% and shipment capacity from 1,800/day to 4,200/day.</li>
+              <li>Reduced overhead costs by $2.2M annually and identified $634k annual incorrect-order shipping exposure.</li>
+              <li>Developed reusable AI/development patterns for internal workflow implementation.</li>
+            </ul>
+          </article>
+          <article>
+            <p className="role-line"><strong>Monteris Medical</strong> | Senior Engineer / Documentation Systems Lead | 2020 - 2022</p>
+            <ul>
+              <li>Led development, verification, validation, and launch of a new MRI-compatible product in 18 months.</li>
+              <li>Built controlled documentation systems to improve traceability and reduce unmanaged local files.</li>
+            </ul>
+          </article>
+          <article>
+            <p className="role-line"><strong>Donaldson</strong> | Product Manager | 2018 - 2020</p>
+            <ul>
+              <li>Supported major enterprise customers through product development and strategic planning.</li>
+              <li>Built new revenue pipelines during the pandemic through market and network execution.</li>
+            </ul>
+          </article>
+        </section>
+
+        <section>
+          <h4>Core Stack</h4>
+          <p>React | Python | SQL | APIs | Microsoft Fabric | Dataverse | Power Platform | Azure | Cosmos DB | Workflow Automation</p>
+        </section>
       </div>
     </section>
   );

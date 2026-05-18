@@ -9,9 +9,9 @@ This repository tracks resume materials, job applications, and project evidence 
 - `applications/` - role-specific job notes, tailoring plans, and application drafts.
 - `portfolio/` - static portfolio/demo site for showing shipped internal tools and project evidence.
 
-## Current Target
+## Current Focus
 
-- Figma - Sales AI Engineer
+- AI workflow engineering and operations technology portfolio
 
 ## Portfolio
 
