@@ -16,3 +16,6 @@ My background combines hands-on AI-assisted software development, operations tec
 - Quantify adoption, savings, throughput, accuracy, and cycle-time improvements.
 - Show stakeholder partnership across operations, sales support, IT, executives, and frontline users.
 
+## Portfolio Demo Angle
+
+Use the portfolio site as a proof layer alongside the resume. The site should show representative internal tools, measurable outcomes, system-integration thinking, React/Python implementation patterns, and an interactive workflow triage demo. This supports the case that the application is not just claiming AI workflow experience, but showing how those workflows are designed, operationalized, and measured.
