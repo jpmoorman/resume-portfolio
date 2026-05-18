@@ -28,6 +28,14 @@ const categoryIcons = {
   "Web Apps": BriefcaseBusiness,
 };
 
+const toolIconMap = {
+  "OpenAI Codex": { label: "CX", className: "codex" },
+  "Claude Code": { label: "CL", className: "claude" },
+  OpenCode: { label: "OC", className: "opencode" },
+  Windsurf: { label: "WS", className: "windsurf" },
+  "Microsoft Fabric": { label: "FB", className: "fabric" },
+};
+
 function App() {
   const [activeCategory, setActiveCategory] = useState("All");
   const filteredProjects = useMemo(() => {
@@ -178,7 +186,7 @@ function ProjectCard({ project }) {
       </div>
       <div className="tool-list" aria-label={`Tools used for ${project.title}`}>
         {project.tools.map((tool) => (
-          <span key={tool}>{tool}</span>
+          <ToolBadge key={tool} text={tool} />
         ))}
       </div>
       <div className="impact-list">
@@ -243,13 +251,27 @@ function Skills() {
             <h3>{group}</h3>
             <div>
               {skills.map((skill) => (
-                <span key={skill}>{skill}</span>
+                <ToolBadge key={skill} text={skill} />
               ))}
             </div>
           </article>
         ))}
       </div>
     </section>
+  );
+}
+
+function ToolBadge({ text }) {
+  const toolIcon = toolIconMap[text];
+  if (!toolIcon) {
+    return <span>{text}</span>;
+  }
+
+  return (
+    <span className={`tool-badge ${toolIcon.className}`}>
+      <i aria-hidden="true">{toolIcon.label}</i>
+      {text}
+    </span>
   );
 }
 

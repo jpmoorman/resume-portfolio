@@ -30,9 +30,9 @@
     }
   ],
   "skills": {
-    "AI": ["OpenAI Codex", "Claude Code", "GitHub Copilot", "Prompt frameworks", "Agent-style workflows", "Custom AI/development skills"],
+    "AI": ["OpenAI Codex", "Claude Code", "OpenCode", "Windsurf", "GitHub Copilot", "Prompt frameworks", "Agent-style workflows", "Custom AI/development skills"],
     "Web Apps": ["React", "Python", "APIs", "Internal web tools", "Reusable UI patterns", "Workflow surfaces"],
-    "Data": ["SQL", "Dataverse", "Cosmos DB", "Power BI", "Dashboards", "Operational analytics"],
+    "Data": ["SQL", "Dataverse", "Cosmos DB", "Microsoft Fabric", "Power BI", "Dashboards", "Operational analytics"],
     "Automation": ["Power Automate", "Approval workflows", "Document review support", "Reporting automation", "Workflow tracking"],
     "Systems": ["Salesforce-adjacent workflows", "Warehouse systems", "Manufacturing systems", "Document control", "MediaWiki", "Windchill"]
   }

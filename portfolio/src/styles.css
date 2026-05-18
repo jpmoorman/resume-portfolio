@@ -378,6 +378,48 @@ h4 {
   font-size: 0.9rem;
 }
 
+.tool-badge {
+  padding-left: 6px;
+  gap: 8px;
+}
+
+.tool-badge i {
+  width: 24px;
+  height: 24px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 6px;
+  font-style: normal;
+  font-size: 0.74rem;
+  font-weight: 900;
+  letter-spacing: 0;
+}
+
+.tool-badge.codex i {
+  background: #111827;
+  color: #f9fafb;
+}
+
+.tool-badge.claude i {
+  background: #d97706;
+  color: #fff7ed;
+}
+
+.tool-badge.opencode i {
+  background: #2563eb;
+  color: #eff6ff;
+}
+
+.tool-badge.windsurf i {
+  background: #0f766e;
+  color: #ecfeff;
+}
+
+.tool-badge.fabric i {
+  background: #9333ea;
+  color: #f3e8ff;
+}
+
 .impact-list {
   margin-top: auto;
 }
