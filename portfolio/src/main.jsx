@@ -234,6 +234,9 @@ function Resume() {
           <Download size={18} aria-hidden="true" />
           Download resume
         </a>
+        <a className="button secondary" href={profile.resumeDownload} target="_blank" rel="noreferrer">
+          View in browser
+        </a>
       </div>
 
       <div className="resume-preview" aria-label="Print-style resume preview">
@@ -281,6 +284,16 @@ function Resume() {
         <section>
           <h4>Core Stack</h4>
           <p>React | Python | SQL | APIs | Microsoft Fabric | Dataverse | Power Platform | Azure | Cosmos DB | Workflow Automation</p>
+        </section>
+
+        <section>
+          <h4>Full Resume File</h4>
+          <p>Live file preview of the same resume used by the download button.</p>
+          <iframe
+            className="resume-file-frame"
+            src={profile.resumeDownload}
+            title="Full resume file preview"
+          />
         </section>
       </div>
     </section>
