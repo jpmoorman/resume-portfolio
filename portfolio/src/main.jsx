@@ -28,6 +28,8 @@ const categoryIcons = {
   "Web Apps": BriefcaseBusiness,
 };
 
+const favicon = (domain) => `https://www.google.com/s2/favicons?sz=64&domain_url=${domain}`;
+
 const skillsGroupIconMap = {
   AI: favicon("openai.com"),
   "Web Apps": favicon("react.dev"),
@@ -35,8 +37,6 @@ const skillsGroupIconMap = {
   Automation: favicon("powerautomate.microsoft.com"),
   Systems: favicon("salesforce.com"),
 };
-
-const favicon = (domain) => `https://www.google.com/s2/favicons?sz=64&domain_url=${domain}`;
 
 const toolIconMap = {
   "OpenAI Codex": { src: favicon("openai.com"), alt: "OpenAI logo", className: "codex" },
