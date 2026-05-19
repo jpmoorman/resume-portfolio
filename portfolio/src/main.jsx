@@ -203,6 +203,17 @@ function App() {
     );
   }
 
+  if (path === "/hub") {
+    return (
+      <>
+        <Header />
+        <main>
+          <HubPage />
+        </main>
+      </>
+    );
+  }
+
   if (path === "/demos/orbit" || path === "/demos/orbit-document-viewer") {
     return (
       <>
@@ -437,7 +448,10 @@ function DemosOverview() {
         <p>
           Move with W A S D or arrow keys. Walk up to a door, complete the small task in front of
           it, then step through to enter that demo. Returning to the hub always drops you back at
-          the center. Prefer a plain list? Expand the panel below the hub.
+          the center.
+        </p>
+        <p>
+          <a className="button secondary hub-fullscreen-link" href="/hub">Open full-screen hub &nearr;</a>
         </p>
       </div>
 
@@ -1005,6 +1019,25 @@ function DemoPlaceholderPage({ project, demoId, resolvedToolIcons }) {
 
         <a className="button primary" href="/#demos">Return to demo hub</a>
       </div>
+    </section>
+  );
+}
+
+
+function HubPage() {
+  return (
+    <section className="section demo-section hub-page">
+      <div className="hub-page-heading">
+        <p className="eyebrow">Interactive demo hub</p>
+        <h1>Six doors. Six demos.</h1>
+        <p>
+          Move with W A S D / arrows or use the chat to tell the sprite what to do.
+          <a className="hub-page-back" href="/#home"> &larr; Back to home</a>
+        </p>
+      </div>
+      <React.Suspense fallback={<div className="demo-hub-loading">Loading demo room…</div>}>
+        <DemoHub />
+      </React.Suspense>
     </section>
   );
 }

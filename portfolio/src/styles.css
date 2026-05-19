@@ -1528,3 +1528,49 @@ h4 {
     flex: 1 1 auto;
   }
 }
+
+/* Full-screen hub page at /hub for fast iteration + immersive view */
+.hub-page {
+  padding-top: clamp(24px, 4vw, 48px);
+  padding-bottom: clamp(24px, 4vw, 48px);
+}
+
+.hub-page-heading {
+  display: flex;
+  align-items: baseline;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+
+.hub-page-heading h1 {
+  margin: 0;
+  font-size: clamp(2.2rem, 4vw, 3.4rem);
+}
+
+.hub-page-heading p {
+  margin: 0;
+  color: #4e4b45;
+}
+
+.hub-page-back {
+  margin-left: 8px;
+  color: var(--blue);
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.hub-page .demo-hub {
+  min-height: min(82vh, 920px);
+}
+
+.hub-page .demo-hub-canvas {
+  height: min(82vh, 920px);
+  min-height: 560px;
+}
+
+.hub-fullscreen-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
