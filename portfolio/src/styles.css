@@ -1390,3 +1390,141 @@ h4 {
   margin-top: 8px;
   max-width: max-content;
 }
+
+/* Plain-language command panel under the 3D hub */
+.demo-hub-chat {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+  padding: 16px 18px;
+  display: grid;
+  gap: 10px;
+}
+
+.demo-hub-chat label {
+  display: block;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.demo-hub-chat label span {
+  display: block;
+  font-weight: 600;
+  color: var(--muted);
+  font-size: 0.82rem;
+  margin-top: 2px;
+}
+
+.demo-hub-chat-row {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.demo-hub-chat-row input {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfaf6;
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.96rem;
+}
+
+.demo-hub-chat-row input:focus {
+  outline: 2px solid var(--blue);
+  outline-offset: 1px;
+}
+
+.demo-hub-chat-row button {
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid var(--black);
+  border-radius: 8px;
+  background: var(--black);
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+}
+
+.demo-hub-chat-row button.demo-hub-chat-stop {
+  background: transparent;
+  color: var(--ink);
+  border-color: var(--line);
+}
+
+.demo-hub-chat-row button:hover {
+  filter: brightness(1.1);
+}
+
+.demo-hub-chat-status {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #f0f6ff;
+  color: #0c2a6b;
+  border: 1px solid #c9dbff;
+  font-size: 0.92rem;
+}
+
+.demo-hub-chat-status strong {
+  color: var(--blue);
+  margin-right: 6px;
+}
+
+.demo-hub-chat-hints {
+  font-size: 0.86rem;
+  color: var(--muted);
+}
+
+.demo-hub-chat-hints summary {
+  cursor: pointer;
+  font-weight: 700;
+  color: var(--blue);
+  list-style: none;
+}
+
+.demo-hub-chat-hints summary::-webkit-details-marker {
+  display: none;
+}
+
+.demo-hub-chat-hints summary::before {
+  content: "▸ ";
+  display: inline-block;
+  transition: transform 0.15s ease;
+}
+
+.demo-hub-chat-hints[open] summary::before {
+  transform: rotate(90deg);
+}
+
+.demo-hub-chat-hints ul {
+  margin: 8px 0 0;
+  padding-left: 20px;
+  display: grid;
+  gap: 4px;
+}
+
+.demo-hub-chat-hints code {
+  background: #f0eee5;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 0.84rem;
+}
+
+@media (max-width: 640px) {
+  .demo-hub-chat-row {
+    flex-wrap: wrap;
+  }
+  .demo-hub-chat-row input {
+    width: 100%;
+    flex-basis: 100%;
+  }
+  .demo-hub-chat-row button {
+    flex: 1 1 auto;
+  }
+}

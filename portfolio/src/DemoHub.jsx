@@ -105,6 +105,12 @@ export default function DemoHub() {
   const [unlockedDoors, setUnlockedDoors] = useState(() => loadUnlocked());
   const [progress, setProgress] = useState({});
   const [fadeActive, setFadeActive] = useState(false);
+  const [chatInput, setChatInput] = useState("");
+  const [aiStatus, setAiStatus] = useState(null);
+  const aiQueueRef = useRef([]);
+  const aiActionStateRef = useRef({});
+  const doorsRef = useRef([]);
+  const playerRef = useRef(null);
 
   const doorTitleById = useMemo(() => {
     const map = {};
@@ -312,6 +318,8 @@ export default function DemoHub() {
       buildTaskObjects(scene, door3D);
       doors.push(door3D);
     });
+    doorsRef.current = doors;
+    playerRef.current = player;
 
     // Pre-applied unlocks
     const initialUnlocks = loadUnlocked();
@@ -388,6 +396,7 @@ export default function DemoHub() {
     const ACCEL = 14;     // body acceleration toward target
     const FRICTION = 7;   // deceleration when no input (slide feel)
     const velocity = new THREE.Vector3(0, 0, 0);
+    const aiStatusRef = { last: null };
 
     const tmpVec = new THREE.Vector3();
     const playerPlanar = new THREE.Vector3();
@@ -414,7 +423,73 @@ export default function DemoHub() {
       if (keys.has("s") || keys.has("arrowdown")) inputDir.z += 1;
       if (keys.has("a") || keys.has("arrowleft")) inputDir.x -= 1;
       if (keys.has("d") || keys.has("arrowright")) inputDir.x += 1;
-      const hasInput = inputDir.lengthSq() > 0;
+      let hasInput = inputDir.lengthSq() > 0;
+
+      // ── AI agent: if user is not pressing keys and there are queued
+      // actions, synthesize virtual input so the existing momentum/anim
+      // pipeline drives the sprite. Manual input always wins.
+      if (!hasInput && aiQueueRef.current.length > 0 && !navigating) {
+        const action = aiQueueRef.current[0];
+        const state = aiActionStateRef.current;
+        let done = false;
+
+        if (action.type === "goto") {
+          const dx = action.x - player.position.x;
+          const dz = action.z - player.position.z;
+          const dist = Math.sqrt(dx * dx + dz * dz);
+          const radius = action.radius || 0.55;
+          if (dist < radius) {
+            done = true;
+          } else {
+            inputDir.set(dx / dist, 0, dz / dist);
+            hasInput = true;
+          }
+          // Bail out if we have gotten stuck for too long
+          state.stuckTime = (state.stuckTime || 0) + delta;
+          if (state.stuckTime > 8) done = true;
+        } else if (action.type === "wait") {
+          state.elapsed = (state.elapsed || 0) + delta;
+          if (state.elapsed >= (action.seconds || 0.5)) done = true;
+        } else if (action.type === "enterDoor") {
+          const door = doors.find((d) => d.id === action.doorId);
+          if (!door) { done = true; }
+          else if (!door.unlocked) {
+            // Door wasn\'t opened. Try to plan an open and prepend.
+            const sub = stepsToOpenDoor(door);
+            aiQueueRef.current.splice(1, 0, ...sub);
+            done = true;
+          } else {
+            // Move toward door center; the door-proximity check in main
+            // loop triggers the actual navigation.
+            const dx = door.group.position.x - player.position.x;
+            const dz = door.group.position.z - player.position.z;
+            const dist = Math.sqrt(dx * dx + dz * dz);
+            if (dist < 1.05) done = true;
+            else { inputDir.set(dx / dist, 0, dz / dist); hasInput = true; }
+          }
+        } else if (action.type === "stop") {
+          aiQueueRef.current.length = 0;
+          done = true;
+        } else {
+          done = true;
+        }
+
+        if (done) {
+          aiQueueRef.current.shift();
+          aiActionStateRef.current = {};
+          const nextLabel = aiQueueRef.current[0]?.label || null;
+          if (nextLabel !== state.lastLabel) {
+            state.lastLabel = nextLabel;
+            setAiStatus(nextLabel);
+          }
+        } else if (action.label && aiActionStateRef.current.lastLabel !== action.label) {
+          aiActionStateRef.current.lastLabel = action.label;
+          setAiStatus(action.label);
+        }
+      } else if (aiQueueRef.current.length === 0 && aiStatusRef.last !== null) {
+        aiStatusRef.last = null;
+        setAiStatus(null);
+      }
 
       if (hasInput) {
         inputDir.normalize().multiplyScalar(MAX_SPEED);
@@ -661,6 +736,34 @@ export default function DemoHub() {
     return n;
   }, [progress, unlockedDoors]);
 
+  const submitCommand = (event) => {
+    event?.preventDefault?.();
+    const text = chatInput.trim();
+    if (!text) return;
+    const doors = doorsRef.current;
+    const steps = planFromCommand(text, doors);
+    if (steps.length === 0) {
+      setAiStatus(`Couldn\'t parse "${text}". Try "open orbit", "step on the red plate", or "collect 3 rings".`);
+      return;
+    }
+    if (steps[0]?.type === "stop") {
+      aiQueueRef.current = [];
+      aiActionStateRef.current = {};
+      setAiStatus("Stopped.");
+    } else {
+      aiQueueRef.current = steps;
+      aiActionStateRef.current = {};
+      setAiStatus(steps[0].label || "Working...");
+    }
+    setChatInput("");
+  };
+
+  const cancelAI = () => {
+    aiQueueRef.current = [];
+    aiActionStateRef.current = {};
+    setAiStatus("Stopped.");
+  };
+
   const moveButton = (key, label, glyph) => (
     <button
       type="button"
@@ -733,6 +836,46 @@ export default function DemoHub() {
           })}
         </div>
       </details>
+
+      <div className="demo-hub-chat" role="region" aria-label="Plain language command for sprite">
+        <form onSubmit={submitCommand}>
+          <label htmlFor="demo-hub-chat-input">
+            Tell the sprite what to do
+            <span> &middot; e.g. "open orbit and go through", "step on the red plate", "collect 3 rings"</span>
+          </label>
+          <div className="demo-hub-chat-row">
+            <input
+              id="demo-hub-chat-input"
+              type="text"
+              value={chatInput}
+              onChange={(e) => setChatInput(e.target.value)}
+              placeholder="Type a command and press Enter"
+              autoComplete="off"
+            />
+            <button type="submit">Run</button>
+            <button type="button" className="demo-hub-chat-stop" onClick={cancelAI} aria-label="Stop sprite">
+              Stop
+            </button>
+          </div>
+        </form>
+        {aiStatus && (
+          <p className="demo-hub-chat-status" aria-live="polite">
+            <strong>Plan:</strong> {aiStatus}
+          </p>
+        )}
+        <details className="demo-hub-chat-hints">
+          <summary>What can I say?</summary>
+          <ul>
+            <li><code>open orbit</code> &mdash; solves the Orbit task automatically</li>
+            <li><code>collect 3 rings</code> &mdash; same as above</li>
+            <li><code>step on the purple pad</code> &mdash; walks to the AI charge pad</li>
+            <li><code>red plate then green then blue</code> &mdash; not yet, just say <code>open validation</code></li>
+            <li><code>open warehouse and go through</code> &mdash; solves + enters</li>
+            <li><code>go to programs door</code> &mdash; just walks there</li>
+            <li><code>stop</code> &mdash; cancels current plan</li>
+          </ul>
+        </details>
+      </div>
     </div>
   );
 }
@@ -1086,4 +1229,151 @@ function makeTextSprite(text, color, background) {
   texture.anisotropy = 4;
   const material = new THREE.SpriteMaterial({ map: texture, transparent: true });
   return new THREE.Sprite(material);
+}
+
+/* ──────────────────────────────────────────────────────────────────────
+ *  Plain-language command parser & planner. No external AI: a small set of
+ *  keyword + alias matchers map free-form text to a queue of waypoint /
+ *  wait / door actions that the agent loop executes.
+ * ────────────────────────────────────────────────────────────────────── */
+
+const DOOR_ALIASES = {
+  "orbit": "orbit-document-viewer",
+  "orbit demo": "orbit-document-viewer",
+  "orbit door": "orbit-document-viewer",
+  "warehouse": "warehouse-management",
+  "ai patterns": "ai-development-patterns",
+  "ai pattern": "ai-development-patterns",
+  "ai": "ai-development-patterns",
+  "validation": "validation-graphing",
+  "validation door": "validation-graphing",
+  "mes": "mes-electronic-traveler",
+  "traveler": "mes-electronic-traveler",
+  "programs": "program-management-platform",
+  "program": "program-management-platform",
+};
+
+const COLOR_TO_TARGET = {
+  red: { door: "validation-graphing", taskKey: "r" },
+  green: { door: "validation-graphing", taskKey: "g" },
+  blue: { door: "validation-graphing", taskKey: "b" },
+  purple: { door: "ai-development-patterns" },
+  violet: { door: "ai-development-patterns" },
+  magenta: { door: "ai-development-patterns" },
+  gold: { door: "warehouse-management" },
+  yellow: { door: "warehouse-management" },
+  orange: { door: "mes-electronic-traveler" },
+  teal: { door: "validation-graphing", taskKey: "g" },
+  cyan: { door: "validation-graphing", taskKey: "b" },
+};
+
+export function planFromCommand(rawText, doors) {
+  const lc = (rawText || "").trim().toLowerCase();
+  if (!lc) return [];
+  if (/\b(stop|cancel|halt|reset|wait stop|hold)\b/.test(lc)) return [{ type: "stop", label: "Stopping" }];
+
+  // Identify target door (longest alias wins)
+  let targetDoorId = null;
+  let bestLen = 0;
+  for (const [alias, id] of Object.entries(DOOR_ALIASES)) {
+    if (alias.length > bestLen && new RegExp(`\\b${alias}\\b`).test(lc)) {
+      targetDoorId = id;
+      bestLen = alias.length;
+    }
+  }
+  const door = doors.find((d) => d.id === targetDoorId) || null;
+
+  const wantsEnter = /\b(enter|go through|walk through|step through|through the (?:door|orbit|warehouse|ai|validation|mes|program))\b/.test(lc);
+  const wantsOpen = /\b(open|unlock|solve|complete|finish)\b/.test(lc);
+  const wantsCollect = /\b(collect|grab|pick up|gather|get (?:the |all ))\b/.test(lc) || /\b(rings?|tokens?|coins?)\b/.test(lc);
+  const wantsGoto = /\b(go to|walk to|step on|stand on|move to|approach|head to)\b/.test(lc);
+
+  // ENTER (implies open if needed)
+  if (wantsEnter && door) {
+    return [...stepsToOpenDoor(door), { type: "enterDoor", doorId: door.id, label: `Enter ${door.config.title} demo` }];
+  }
+
+  // OPEN
+  if (wantsOpen && door) {
+    const sub = stepsToOpenDoor(door);
+    if (sub.length === 0) return [{ type: "goto", x: door.group.position.x * 0.78, z: door.group.position.z * 0.78, radius: 1.2, label: `${door.config.title} door is already open` }];
+    return sub;
+  }
+
+  // COLLECT (default to orbit if no door specified)
+  if (wantsCollect) {
+    const d = door || doors.find((dd) => dd.config.task.type === "collect");
+    if (d) return stepsToOpenDoor(d);
+  }
+
+  // GOTO (color-or-object first, then door fallback)
+  const objSteps = stepsToObjectByDescription(lc, doors);
+  if (objSteps.length) return objSteps;
+  if (wantsGoto && door) {
+    return [{ type: "goto", x: door.group.position.x * 0.85, z: door.group.position.z * 0.85, radius: 0.9, label: `Walk to ${door.config.title} door` }];
+  }
+
+  // Fallback: door mentioned by itself
+  if (door) {
+    return [{ type: "goto", x: door.group.position.x * 0.85, z: door.group.position.z * 0.85, radius: 0.9, label: `Walk to ${door.config.title} door` }];
+  }
+
+  return [];
+}
+
+function stepsToOpenDoor(door) {
+  if (door.unlocked) return [];
+  const t = door.taskState;
+  const steps = [];
+  if (!t) return steps;
+  if (t.type === "collect") {
+    door.taskObjects.forEach((token, i) => {
+      if (!token.userData.collected) {
+        steps.push({ type: "goto", x: token.position.x, z: token.position.z, radius: 0.5, label: `Collect token ${i + 1} of ${door.taskObjects.length}` });
+      }
+    });
+  } else if (t.type === "plate") {
+    const plate = door.taskObjects[0];
+    steps.push({ type: "goto", x: plate.position.x, z: plate.position.z, radius: 0.5, label: `Step on the ${door.config.title} plate` });
+  } else if (t.type === "charge") {
+    const pad = door.taskObjects[0];
+    steps.push({ type: "goto", x: pad.position.x, z: pad.position.z, radius: 0.55, label: "Walk onto the charge pad" });
+    steps.push({ type: "wait", seconds: (door.config.task.seconds || 1.4) + 0.3, label: "Hold position to charge" });
+  } else if (t.type === "sequence") {
+    const order = door.config.task.order;
+    order.forEach((k, i) => {
+      const plate = t.plates[k];
+      const colorName = { r: "red", g: "green", b: "blue" }[k] || k;
+      steps.push({ type: "goto", x: plate.position.x, z: plate.position.z, radius: 0.45, label: `Step on the ${colorName} plate (${i + 1} of 3)` });
+    });
+  } else if (t.type === "walk") {
+    const marker = door.taskObjects[0];
+    steps.push({ type: "goto", x: marker.position.x, z: marker.position.z, radius: 0.55, label: "Walk to the traveler marker" });
+  } else if (t.type === "waypoints") {
+    t.list.forEach((wp, i) => {
+      if (!wp.userData.hit) {
+        steps.push({ type: "goto", x: wp.position.x, z: wp.position.z, radius: 0.5, label: `Sync checkpoint ${i + 1} of ${t.list.length}` });
+      }
+    });
+  }
+  return steps;
+}
+
+function stepsToObjectByDescription(lc, doors) {
+  for (const [color, target] of Object.entries(COLOR_TO_TARGET)) {
+    if (!new RegExp(`\\b${color}\\b`).test(lc)) continue;
+    const door = doors.find((d) => d.id === target.door);
+    if (!door) continue;
+    const t = door.taskState;
+    if (t.type === "sequence" && target.taskKey && t.plates) {
+      const plate = t.plates[target.taskKey];
+      if (plate) return [{ type: "goto", x: plate.position.x, z: plate.position.z, radius: 0.45, label: `Walk to the ${color} plate` }];
+    }
+    if ((t.type === "charge" || t.type === "plate" || t.type === "walk") && door.taskObjects[0]) {
+      const obj = door.taskObjects[0];
+      const noun = t.type === "charge" ? "pad" : t.type === "plate" ? "plate" : "marker";
+      return [{ type: "goto", x: obj.position.x, z: obj.position.z, radius: 0.55, label: `Walk to the ${color} ${noun}` }];
+    }
+  }
+  return [];
 }
