@@ -110,6 +110,30 @@ const iconLabTools = [
 ];
 
 const ICON_OVERRIDE_KEY = "portfolio_tool_icon_overrides_v1";
+const ICON_ADMIN_TOKEN_KEY = "portfolio_icon_admin_token_v1";
+
+async function fetchKvOverrides() {
+  const response = await fetch("/api/icons", { method: "GET" });
+  if (!response.ok) throw new Error(`GET /api/icons failed: ${response.status}`);
+  const payload = await response.json();
+  return payload.overrides || {};
+}
+
+async function saveKvOverrides(overrides, token) {
+  const response = await fetch("/api/icons", {
+    method: "PUT",
+    headers: {
+      "content-type": "application/json",
+      "x-icon-admin-token": token,
+    },
+    body: JSON.stringify({ overrides }),
+  });
+  if (!response.ok) {
+    const msg = await response.text();
+    throw new Error(`PUT /api/icons failed: ${response.status} ${msg}`);
+  }
+  return response.json();
+}
 
 function App() {
   const [activeCategory, setActiveCategory] = useState("All");
@@ -126,6 +150,22 @@ function App() {
     const onHash = () => setHash(window.location.hash || "");
     window.addEventListener("hashchange", onHash);
     return () => window.removeEventListener("hashchange", onHash);
+  }, []);
+
+  React.useEffect(() => {
+    let mounted = true;
+    fetchKvOverrides()
+      .then((remote) => {
+        if (!mounted) return;
+        setIconOverrides(remote);
+        window.localStorage.setItem(ICON_OVERRIDE_KEY, JSON.stringify(remote));
+      })
+      .catch(() => {
+        // Keep local fallback when KV isn't configured yet.
+      });
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const filteredProjects = useMemo(() => {
@@ -443,6 +483,7 @@ function ToolBadge({ text, resolvedToolIcons }) {
 function IconLab({ overrides, setOverrides }) {
   const [draft, setDraft] = useState(() => ({ ...overrides }));
   const [jsonDraft, setJsonDraft] = useState("");
+  const [adminToken, setAdminToken] = useState(() => window.localStorage.getItem(ICON_ADMIN_TOKEN_KEY) || "");
 
   const setValue = (name, value) => setDraft((prev) => ({ ...prev, [name]: value.trim() }));
 
@@ -450,6 +491,35 @@ function IconLab({ overrides, setOverrides }) {
     window.localStorage.setItem(ICON_OVERRIDE_KEY, JSON.stringify(draft));
     setOverrides(draft);
     alert("Icon overrides saved.");
+  };
+
+  const saveToKv = async () => {
+    const token = adminToken.trim();
+    if (!token) {
+      alert("Admin token is required to save to KV.");
+      return;
+    }
+    try {
+      const result = await saveKvOverrides(draft, token);
+      window.localStorage.setItem(ICON_ADMIN_TOKEN_KEY, token);
+      window.localStorage.setItem(ICON_OVERRIDE_KEY, JSON.stringify(draft));
+      setOverrides(draft);
+      alert(`Saved to KV. ${result.count} mappings stored.`);
+    } catch (error) {
+      alert(`KV save failed: ${error.message}`);
+    }
+  };
+
+  const loadFromKv = async () => {
+    try {
+      const remote = await fetchKvOverrides();
+      setDraft(remote);
+      setOverrides(remote);
+      window.localStorage.setItem(ICON_OVERRIDE_KEY, JSON.stringify(remote));
+      alert("Loaded icon overrides from KV.");
+    } catch (error) {
+      alert(`KV load failed: ${error.message}`);
+    }
   };
 
   const clearAll = () => {
@@ -491,11 +561,20 @@ function IconLab({ overrides, setOverrides }) {
         <p>Set favicon URLs per tool. Use full icon URL or favicon endpoint URL. Secret route: <code>{ICON_LAB_HASH}</code></p>
         <div className="icon-lab-actions">
           <button className="button primary" type="button" onClick={save}>Save</button>
+          <button className="button secondary" type="button" onClick={loadFromKv}>Load from KV</button>
+          <button className="button secondary" type="button" onClick={saveToKv}>Save to KV</button>
           <button className="button secondary" type="button" onClick={clearAll}>Clear</button>
           <button className="button secondary" type="button" onClick={exportJson}>Export JSON</button>
           <button className="button secondary" type="button" onClick={importJson}>Import JSON</button>
           <a className="button secondary" href="#home">Back to site</a>
         </div>
+        <input
+          className="icon-lab-token"
+          type="password"
+          value={adminToken}
+          onChange={(event) => setAdminToken(event.target.value)}
+          placeholder="Admin token for KV write"
+        />
         <textarea
           className="icon-lab-json"
           value={jsonDraft}
