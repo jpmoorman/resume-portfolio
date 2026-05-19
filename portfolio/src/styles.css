@@ -1335,3 +1335,58 @@ h4 {
     grid-template-columns: 1fr;
   }
 }
+
+/* Fade-to-white transition when walking through an open door */
+.demo-hub-fader {
+  position: absolute;
+  inset: 0;
+  background: #ffffff;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.42s ease-out;
+}
+
+.demo-hub-fader.active {
+  opacity: 1;
+}
+
+/* Placeholder page for demos that don't have a live interactive build yet */
+.demo-placeholder {
+  display: grid;
+  gap: 22px;
+  margin-top: 28px;
+}
+
+.demo-placeholder-banner {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: linear-gradient(135deg, #f5f1e6, #ffffff);
+  padding: 22px 24px;
+}
+
+.demo-placeholder-banner small {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.demo-placeholder-banner strong {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 1.1rem;
+  color: var(--ink);
+}
+
+.demo-placeholder-banner p {
+  color: #4e4b45;
+  margin: 0;
+}
+
+.demo-placeholder .project-details {
+  margin-top: 0;
+}
+
+.demo-placeholder .button.primary {
+  align-self: flex-start;
+  margin-top: 8px;
+  max-width: max-content;
+}

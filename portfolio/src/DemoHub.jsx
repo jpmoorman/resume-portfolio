@@ -4,14 +4,14 @@ import projects from "./data/projects.json";
 
 /**
  * 3D demo hub. Mario-64-inspired in *feel only* — no Nintendo IP, characters,
- * or assets. The player spawns in the center of a hexagonal hub room. Six
- * doors line the perimeter, each tied to one project. Each door requires a
- * short, distinct task to unlock. Walking through an open door navigates to
- * that project's page (or anchor on the main portfolio). Returning to the
- * hub always respawns the player at center.
+ * or assets. Player spawns at hub center; six double-doors line the perimeter,
+ * each tied to one project. Each door requires a small unique task. When
+ * unlocked, both door leaves swing open and a glow ring expands outward.
+ * Walking through triggers a fade-to-white transition, then navigates to the
+ * demo route. Returning to the hub always respawns the player at center.
  */
 
-const STORAGE_KEY = "demo_hub_unlocked_v2";
+const STORAGE_KEY = "demo_hub_unlocked_v3";
 const DOOR_RADIUS = 8.4;
 const FLOOR_RADIUS = 11;
 const SPAWN = new THREE.Vector3(0, 0.4, 0);
@@ -21,54 +21,60 @@ const DOOR_CONFIGS = [
     id: "orbit-document-viewer",
     title: "Orbit",
     short: "Controlled document viewer",
-    href: "/demos/orbit",
+    href: "/demos/orbit-document-viewer",
     color: 0x245ee8,
     accent: 0x9fc1ff,
+    icon: "◉",
     task: { type: "collect", count: 3, label: "Collect 3 serial tokens" },
   },
   {
     id: "warehouse-management",
     title: "Warehouse",
     short: "Fulfillment workflows",
-    href: "/#project-warehouse-management",
+    href: "/demos/warehouse-management",
     color: 0xb7791f,
     accent: 0xffd277,
+    icon: "▦",
     task: { type: "plate", label: "Step on the dispatch plate" },
   },
   {
     id: "ai-development-patterns",
     title: "AI Patterns",
     short: "Reusable AI dev skills",
-    href: "/#project-ai-development-patterns",
+    href: "/demos/ai-development-patterns",
     color: 0x7a3ad6,
     accent: 0xc9a8ff,
+    icon: "✦",
     task: { type: "charge", seconds: 1.4, label: "Charge the AI core (stand on pad)" },
   },
   {
     id: "validation-graphing",
     title: "Validation",
     short: "Graphing + research tools",
-    href: "/#project-validation-graphing",
+    href: "/demos/validation-graphing",
     color: 0x0f766e,
     accent: 0x6ee2cf,
+    icon: "▨",
     task: { type: "sequence", order: ["r", "g", "b"], label: "Hit plates: red → green → blue" },
   },
   {
     id: "mes-electronic-traveler",
     title: "MES",
     short: "Electronic traveler",
-    href: "/#project-mes-electronic-traveler",
+    href: "/demos/mes-electronic-traveler",
     color: 0xc2410c,
     accent: 0xffae7c,
+    icon: "⚙",
     task: { type: "walk", label: "Walk to the traveler marker" },
   },
   {
     id: "program-management-platform",
     title: "Programs",
     short: "Power Platform program tools",
-    href: "/#project-program-management-platform",
+    href: "/demos/program-management-platform",
     color: 0x1d4ed8,
     accent: 0x93c5fd,
+    icon: "☰",
     task: { type: "waypoints", count: 4, label: "Sync the 4 program checkpoints" },
   },
 ];
@@ -93,10 +99,12 @@ function saveUnlocked(set) {
 
 export default function DemoHub() {
   const mountRef = useRef(null);
+  const faderRef = useRef(null);
   const [hint, setHint] = useState("Move with W A S D or arrow keys. Approach a door to see its task.");
   const [nearDoor, setNearDoor] = useState(null);
   const [unlockedDoors, setUnlockedDoors] = useState(() => loadUnlocked());
   const [progress, setProgress] = useState({});
+  const [fadeActive, setFadeActive] = useState(false);
 
   const doorTitleById = useMemo(() => {
     const map = {};
@@ -147,6 +155,7 @@ export default function DemoHub() {
     rim.position.set(-8, 6, -6);
     scene.add(rim);
 
+    // ── Floor ─────────────────────────────────────────────────────────
     const floor = new THREE.Mesh(
       new THREE.CircleGeometry(FLOOR_RADIUS, 6),
       new THREE.MeshStandardMaterial({ color: 0xefe9da, roughness: 0.9 })
@@ -171,30 +180,22 @@ export default function DemoHub() {
     spawnPad.receiveShadow = true;
     scene.add(spawnPad);
 
+    // Decorative star on the spawn pad
+    const star = makeTextSprite("★", "#ffd277", "rgba(0,0,0,0)");
+    star.position.set(0, 0.13, 0);
+    star.scale.set(1.4, 1.4, 1);
+    scene.add(star);
+
+    // ── Player (richer sprite: head, hat, torso, arms, legs) ──────────
     const player = new THREE.Group();
-    const body = new THREE.Mesh(
-      new THREE.SphereGeometry(0.34, 24, 18),
-      new THREE.MeshStandardMaterial({ color: 0xd24a3c, roughness: 0.45 })
-    );
-    body.position.y = 0.34;
-    body.castShadow = true;
-    const cap = new THREE.Mesh(
-      new THREE.ConeGeometry(0.32, 0.42, 18),
-      new THREE.MeshStandardMaterial({ color: 0x245ee8, roughness: 0.55 })
-    );
-    cap.position.y = 0.78;
-    cap.castShadow = true;
-    const facing = new THREE.Mesh(
-      new THREE.SphereGeometry(0.06, 10, 8),
-      new THREE.MeshStandardMaterial({ color: 0xffffff })
-    );
-    facing.position.set(0, 0.4, 0.3);
-    player.add(body, cap, facing);
+    const playerRig = buildPlayer();
+    player.add(playerRig.root);
     player.position.copy(SPAWN);
     scene.add(player);
 
     const facingDir = new THREE.Vector3(0, 0, 1);
 
+    // ── Doors ─────────────────────────────────────────────────────────
     const doors = [];
 
     DOOR_CONFIGS.forEach((door, index) => {
@@ -207,83 +208,132 @@ export default function DemoHub() {
       group.lookAt(0, 0, 0);
       group.rotation.y += Math.PI;
 
+      // Frame
       const frame = new THREE.Mesh(
-        new THREE.BoxGeometry(2.4, 3.0, 0.28),
+        new THREE.BoxGeometry(2.5, 3.1, 0.32),
         new THREE.MeshStandardMaterial({ color: 0x2a261f, roughness: 0.7 })
       );
-      frame.position.y = 1.5;
+      frame.position.y = 1.55;
       frame.castShadow = true;
       frame.receiveShadow = true;
 
+      // Top arch with category color glow
       const arch = new THREE.Mesh(
-        new THREE.TorusGeometry(1.1, 0.14, 12, 24, Math.PI),
-        new THREE.MeshStandardMaterial({ color: 0x57503f, roughness: 0.7 })
+        new THREE.TorusGeometry(1.18, 0.16, 14, 28, Math.PI),
+        new THREE.MeshStandardMaterial({
+          color: door.accent,
+          emissive: door.accent,
+          emissiveIntensity: 0.25,
+          roughness: 0.4,
+        })
       );
-      arch.position.y = 2.85;
+      arch.position.y = 3.0;
       arch.rotation.z = Math.PI;
       arch.castShadow = true;
 
-      const slab = new THREE.Mesh(
-        new THREE.BoxGeometry(1.85, 2.5, 0.18),
-        new THREE.MeshStandardMaterial({
-          color: door.color,
-          roughness: 0.5,
-          metalness: 0.08,
-          emissive: 0x000000,
-        })
-      );
-      slab.position.set(0, 1.27, 0.12);
-      slab.castShadow = true;
+      // Two door leaves
+      const leafMaterial = new THREE.MeshStandardMaterial({
+        color: door.color,
+        roughness: 0.5,
+        metalness: 0.1,
+        emissive: 0x000000,
+      });
+      const leftLeaf = new THREE.Group();
+      const leftSlab = new THREE.Mesh(new THREE.BoxGeometry(0.92, 2.55, 0.16), leafMaterial.clone());
+      leftSlab.position.set(0.46, 0, 0); // pivot on left edge of leaf -> slab offset to right
+      leftSlab.castShadow = true;
+      leftLeaf.add(leftSlab);
+      leftLeaf.position.set(-0.46, 1.32, 0.16);
 
-      const handle = new THREE.Mesh(
-        new THREE.SphereGeometry(0.08, 12, 10),
-        new THREE.MeshStandardMaterial({ color: 0xfff3c4, emissive: 0x9c7400 })
-      );
-      handle.position.set(0.7, 1.2, 0.22);
+      const rightLeaf = new THREE.Group();
+      const rightSlab = new THREE.Mesh(new THREE.BoxGeometry(0.92, 2.55, 0.16), leafMaterial.clone());
+      rightSlab.position.set(-0.46, 0, 0); // pivot on right edge
+      rightSlab.castShadow = true;
+      rightLeaf.add(rightSlab);
+      rightLeaf.position.set(0.46, 1.32, 0.16);
 
+      // Category icon embossed on each leaf
+      const iconLeft = makeTextSprite(door.icon, "#ffffff", "rgba(0,0,0,0)");
+      iconLeft.scale.set(0.55, 0.55, 1);
+      iconLeft.position.set(0.46, 1.5, 0.26);
+      leftLeaf.add(iconLeft);
+
+      const iconRight = makeTextSprite(door.icon, "#ffffff", "rgba(0,0,0,0)");
+      iconRight.scale.set(0.55, 0.55, 1);
+      iconRight.position.set(-0.46, 1.5, 0.26);
+      rightLeaf.add(iconRight);
+
+      // Handles
+      const handleMat = new THREE.MeshStandardMaterial({ color: 0xfff3c4, emissive: 0x9c7400, metalness: 0.5 });
+      const handleL = new THREE.Mesh(new THREE.SphereGeometry(0.08, 12, 10), handleMat);
+      handleL.position.set(0.38, 1.2, 0.25);
+      leftLeaf.add(handleL);
+      const handleR = new THREE.Mesh(new THREE.SphereGeometry(0.08, 12, 10), handleMat);
+      handleR.position.set(-0.38, 1.2, 0.25);
+      rightLeaf.add(handleR);
+
+      // Title plaque above arch
       const plaque = makeTextSprite(door.title, "#ffffff", "#171717");
-      plaque.position.set(0, 3.2, 0.32);
-      plaque.scale.set(1.9, 0.55, 1);
+      plaque.position.set(0, 3.45, 0.3);
+      plaque.scale.set(2.0, 0.6, 1);
 
-      group.add(frame, arch, slab, handle, plaque);
+      // Glow ring (hidden until unlock)
+      const glow = new THREE.Mesh(
+        new THREE.RingGeometry(0.6, 1.4, 32),
+        new THREE.MeshBasicMaterial({ color: door.accent, transparent: true, opacity: 0, side: THREE.DoubleSide })
+      );
+      glow.rotation.x = -Math.PI / 2;
+      glow.position.set(0, 0.08, 0.5);
+      glow.scale.set(0.01, 0.01, 0.01);
+
+      group.add(frame, arch, leftLeaf, rightLeaf, plaque, glow);
       scene.add(group);
 
       const door3D = {
         id: door.id,
         config: door,
         group,
-        slab,
+        leftLeaf,
+        rightLeaf,
+        leftSlab,
+        rightSlab,
         plaque,
-        restingY: 1.27,
-        openTargetY: 3.1,
+        glow,
+        sparks: [],
+        sparkActive: false,
+        sparkLife: 0,
         front: new THREE.Vector3(dx * 0.78, 0, dz * 0.78),
         taskObjects: [],
         taskState: {},
         unlocked: false,
+        openProgress: 0,
       };
 
       buildTaskObjects(scene, door3D);
       doors.push(door3D);
     });
 
+    // Pre-applied unlocks
     const initialUnlocks = loadUnlocked();
     doors.forEach((d) => {
       if (initialUnlocks.has(d.id)) {
         d.unlocked = true;
         d.taskState.completed = true;
+        d.openProgress = 1;
         if (d.taskObjects.length) d.taskObjects.forEach((o) => (o.visible = false));
       }
     });
 
+    // ── Pillars between doors ─────────────────────────────────────────
     for (let i = 0; i < DOOR_CONFIGS.length; i += 1) {
       const a = (Math.PI * 2 * (i + 0.5)) / DOOR_CONFIGS.length + Math.PI;
       const px = Math.sin(a) * (DOOR_RADIUS + 0.4);
       const pz = Math.cos(a) * (DOOR_RADIUS + 0.4);
       const pillar = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.32, 0.36, 3.2, 14),
+        new THREE.CylinderGeometry(0.32, 0.36, 3.4, 14),
         new THREE.MeshStandardMaterial({ color: 0xb6ad94, roughness: 0.8 })
       );
-      pillar.position.set(px, 1.6, pz);
+      pillar.position.set(px, 1.7, pz);
       pillar.castShadow = true;
       pillar.receiveShadow = true;
       scene.add(pillar);
@@ -292,10 +342,11 @@ export default function DemoHub() {
         new THREE.CylinderGeometry(0.42, 0.42, 0.22, 14),
         new THREE.MeshStandardMaterial({ color: 0x6b6450, roughness: 0.7 })
       );
-      cap2.position.set(px, 3.32, pz);
+      cap2.position.set(px, 3.52, pz);
       scene.add(cap2);
     }
 
+    // ── Controls ──────────────────────────────────────────────────────
     const keys = new Set();
     const onKeyDown = (e) => {
       const k = e.key.toLowerCase();
@@ -308,14 +359,12 @@ export default function DemoHub() {
     window.addEventListener("keydown", onKeyDown, { passive: false });
     window.addEventListener("keyup", onKeyUp);
 
-    const setMove = (key, enabled) => {
-      if (enabled) keys.add(key);
-      else keys.delete(key);
-    };
+    const setMove = (key, enabled) => { if (enabled) keys.add(key); else keys.delete(key); };
     mount._demoHubSetMove = setMove;
     mount._demoHubRespawn = () => {
       player.position.copy(SPAWN);
       facingDir.set(0, 0, 1);
+      player.rotation.y = 0;
     };
 
     const resize = () => {
@@ -326,14 +375,24 @@ export default function DemoHub() {
     };
     window.addEventListener("resize", resize);
 
+    // ── Animation loop ────────────────────────────────────────────────
     const clock = new THREE.Clock();
     let navigating = false;
     let lastHint = "";
     let lastNear = null;
     let lastProgress = {};
+    let walkPhase = 0;
 
     const tmpVec = new THREE.Vector3();
     const playerPlanar = new THREE.Vector3();
+
+    const triggerNavigation = (href) => {
+      navigating = true;
+      setFadeActive(true);
+      setTimeout(() => {
+        window.location.href = href;
+      }, 460);
+    };
 
     const animate = () => {
       const delta = Math.min(clock.getDelta(), 0.05);
@@ -345,7 +404,9 @@ export default function DemoHub() {
       if (keys.has("a") || keys.has("arrowleft")) move.x -= 1;
       if (keys.has("d") || keys.has("arrowright")) move.x += 1;
 
-      if (move.lengthSq() > 0) {
+      const isWalking = move.lengthSq() > 0;
+
+      if (isWalking) {
         move.normalize().multiplyScalar(speed);
         const next = player.position.clone().add(move);
         const r = Math.sqrt(next.x * next.x + next.z * next.z);
@@ -368,9 +429,13 @@ export default function DemoHub() {
         player.position.z = next.z;
         facingDir.copy(move).setY(0).normalize();
         player.rotation.y = Math.atan2(facingDir.x, facingDir.z);
+        walkPhase += delta * 12;
+      } else {
+        walkPhase *= 0.86;
       }
 
-      cap.rotation.y += delta * 1.5;
+      // Animate player parts
+      animatePlayer(playerRig, isWalking, walkPhase, clock.elapsedTime);
 
       playerPlanar.set(player.position.x, 0, player.position.z);
 
@@ -380,18 +445,79 @@ export default function DemoHub() {
 
       doors.forEach((d) => {
         const dist = d.group.position.distanceTo(playerPlanar);
+
         if (!d.unlocked) {
           updateTask(d, player, playerPlanar, delta);
           if (d.taskState.completed) {
             d.unlocked = true;
+            d.sparkActive = true;
+            d.sparkLife = 0;
+            // Spawn sparks
+            for (let i = 0; i < 14; i += 1) {
+              const spark = new THREE.Mesh(
+                new THREE.SphereGeometry(0.06, 6, 6),
+                new THREE.MeshBasicMaterial({ color: d.config.accent, transparent: true, opacity: 1 })
+              );
+              const a = (Math.PI * 2 * i) / 14 + Math.random() * 0.3;
+              const sp = 2.4 + Math.random() * 0.8;
+              spark.userData = {
+                vx: Math.cos(a) * sp,
+                vy: 1.5 + Math.random() * 1.5,
+                vz: Math.sin(a) * sp,
+                life: 0.9 + Math.random() * 0.3,
+              };
+              spark.position.set(d.group.position.x, 0.5, d.group.position.z);
+              scene.add(spark);
+              d.sparks.push(spark);
+            }
             initialUnlocks.add(d.id);
             saveUnlocked(initialUnlocks);
           }
         }
         progressSnap[d.id] = taskProgress(d);
-        const targetY = d.unlocked ? d.openTargetY : d.restingY;
-        d.slab.position.y = THREE.MathUtils.lerp(d.slab.position.y, targetY, 0.08);
-        if (d.unlocked) d.slab.material.emissive.setHex(0x111111);
+
+        // Door open animation
+        const targetOpen = d.unlocked ? 1 : 0;
+        d.openProgress = THREE.MathUtils.lerp(d.openProgress, targetOpen, 0.06);
+        const swing = d.openProgress * Math.PI * 0.55; // ~99° max
+        d.leftLeaf.rotation.y = swing;
+        d.rightLeaf.rotation.y = -swing;
+        if (d.unlocked) {
+          d.leftSlab.material.emissive.setHex(0x222222);
+          d.rightSlab.material.emissive.setHex(0x222222);
+        }
+
+        // Glow ring expansion + fade
+        if (d.unlocked) {
+          d.glow.scale.x = THREE.MathUtils.lerp(d.glow.scale.x, 1.6, 0.04);
+          d.glow.scale.y = THREE.MathUtils.lerp(d.glow.scale.y, 1.6, 0.04);
+          d.glow.material.opacity = Math.max(0, 0.7 - d.openProgress * 0.7);
+        }
+
+        // Sparks
+        if (d.sparkActive) {
+          d.sparkLife += delta;
+          d.sparks.forEach((s) => {
+            const u = s.userData;
+            s.position.x += u.vx * delta;
+            s.position.y += u.vy * delta;
+            s.position.z += u.vz * delta;
+            u.vy -= 5.5 * delta;
+            const t = d.sparkLife / u.life;
+            s.material.opacity = Math.max(0, 1 - t);
+            if (s.position.y < 0.05) s.position.y = 0.05;
+          });
+          if (d.sparkLife > 1.4) {
+            d.sparks.forEach((s) => {
+              scene.remove(s);
+              s.geometry.dispose();
+              s.material.dispose();
+            });
+            d.sparks = [];
+            d.sparkActive = false;
+          }
+        }
+
         if (dist < nearestDist) {
           nearestDist = dist;
           nearestDoor = d;
@@ -405,10 +531,9 @@ export default function DemoHub() {
         if (nearestDoor.unlocked) {
           newHint = `${nearestDoor.config.title}: door open — walk through to enter the demo.`;
           if (!navigating && nearestDist < 1.2) {
-            navigating = true;
             newHint = `Entering ${nearestDoor.config.title} demo…`;
-            try { window.sessionStorage.setItem("demo_hub_return_to_center", "1"); } catch { /* ignore */ }
-            setTimeout(() => { window.location.href = nearestDoor.config.href; }, 60);
+            try { window.sessionStorage.setItem("demo_hub_return_to_center", "1"); } catch {}
+            triggerNavigation(nearestDoor.config.href);
           }
         } else {
           newHint = `${nearestDoor.config.title} — ${nearestDoor.config.task.label}`;
@@ -454,7 +579,7 @@ export default function DemoHub() {
   }, []);
 
   useEffect(() => {
-    try { window.sessionStorage.removeItem("demo_hub_return_to_center"); } catch { /* ignore */ }
+    try { window.sessionStorage.removeItem("demo_hub_return_to_center"); } catch {}
     const respawn = () => mountRef.current?._demoHubRespawn?.();
     respawn();
     const onHashChange = () => {
@@ -462,9 +587,7 @@ export default function DemoHub() {
     };
     window.addEventListener("hashchange", onHashChange);
     window.addEventListener("popstate", onHashChange);
-    const onVisibility = () => {
-      if (document.visibilityState === "visible") respawn();
-    };
+    const onVisibility = () => { if (document.visibilityState === "visible") respawn(); };
     document.addEventListener("visibilitychange", onVisibility);
     return () => {
       window.removeEventListener("hashchange", onHashChange);
@@ -474,7 +597,7 @@ export default function DemoHub() {
   }, []);
 
   const resetProgress = () => {
-    try { window.sessionStorage.removeItem(STORAGE_KEY); } catch { /* ignore */ }
+    try { window.sessionStorage.removeItem(STORAGE_KEY); } catch {}
     setUnlockedDoors(new Set());
     window.location.hash = "#demos";
     window.location.reload();
@@ -541,6 +664,7 @@ export default function DemoHub() {
           <span>WASD / Arrows to move</span>
           <span>Walk through an open door to enter that demo</span>
         </div>
+        <div ref={faderRef} className={`demo-hub-fader${fadeActive ? " active" : ""}`} aria-hidden="true" />
       </div>
 
       <details className="demo-hub-skip">
@@ -548,7 +672,7 @@ export default function DemoHub() {
         <div className="demo-card-grid demo-hub-cards">
           {projects.map((p) => {
             const doorCfg = DOOR_CONFIGS.find((d) => d.id === p.id);
-            const href = doorCfg?.href || `/#project-${p.id}`;
+            const href = doorCfg?.href || `/demos/${p.id}`;
             return (
               <a key={p.id} className="demo-card demo-hub-card" href={href}>
                 <span className="category-pill">{p.category}</span>
@@ -563,6 +687,123 @@ export default function DemoHub() {
     </div>
   );
 }
+
+/* ──────────────────────────────────────────────────────────────────────
+ *  Player rig + animation
+ * ────────────────────────────────────────────────────────────────────── */
+
+function buildPlayer() {
+  const root = new THREE.Group();
+
+  // Torso (red)
+  const torso = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.26, 0.3, 0.5, 16),
+    new THREE.MeshStandardMaterial({ color: 0xd24a3c, roughness: 0.5 })
+  );
+  torso.position.y = 0.55;
+  torso.castShadow = true;
+  root.add(torso);
+
+  // Head
+  const head = new THREE.Mesh(
+    new THREE.SphereGeometry(0.28, 24, 18),
+    new THREE.MeshStandardMaterial({ color: 0xffd9b5, roughness: 0.55 })
+  );
+  head.position.y = 1.05;
+  head.castShadow = true;
+  root.add(head);
+
+  // Eyes (two tiny white spheres + pupils)
+  const eyeMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
+  const pupilMat = new THREE.MeshStandardMaterial({ color: 0x171717 });
+  const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.06, 10, 8), eyeMat);
+  eyeL.position.set(-0.1, 1.07, 0.23);
+  const eyeR = new THREE.Mesh(new THREE.SphereGeometry(0.06, 10, 8), eyeMat);
+  eyeR.position.set(0.1, 1.07, 0.23);
+  const pupilL = new THREE.Mesh(new THREE.SphereGeometry(0.025, 8, 6), pupilMat);
+  pupilL.position.set(-0.1, 1.07, 0.27);
+  const pupilR = new THREE.Mesh(new THREE.SphereGeometry(0.025, 8, 6), pupilMat);
+  pupilR.position.set(0.1, 1.07, 0.27);
+  root.add(eyeL, eyeR, pupilL, pupilR);
+
+  // Hat (cone)
+  const hat = new THREE.Mesh(
+    new THREE.ConeGeometry(0.32, 0.42, 18),
+    new THREE.MeshStandardMaterial({ color: 0x245ee8, roughness: 0.55 })
+  );
+  hat.position.y = 1.4;
+  hat.castShadow = true;
+  root.add(hat);
+
+  // Hat brim
+  const brim = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.34, 0.34, 0.06, 18),
+    new THREE.MeshStandardMaterial({ color: 0x1a3f9c, roughness: 0.6 })
+  );
+  brim.position.y = 1.2;
+  root.add(brim);
+
+  // Arms (two boxes)
+  const armMat = new THREE.MeshStandardMaterial({ color: 0xd24a3c, roughness: 0.55 });
+  const armGeo = new THREE.BoxGeometry(0.12, 0.42, 0.12);
+  const armL = new THREE.Group();
+  const armLMesh = new THREE.Mesh(armGeo, armMat);
+  armLMesh.position.y = -0.21;
+  armLMesh.castShadow = true;
+  armL.add(armLMesh);
+  armL.position.set(-0.32, 0.78, 0);
+  const armR = new THREE.Group();
+  const armRMesh = new THREE.Mesh(armGeo, armMat);
+  armRMesh.position.y = -0.21;
+  armRMesh.castShadow = true;
+  armR.add(armRMesh);
+  armR.position.set(0.32, 0.78, 0);
+  root.add(armL, armR);
+
+  // Legs (jeans color)
+  const legMat = new THREE.MeshStandardMaterial({ color: 0x1d3a8a, roughness: 0.6 });
+  const legGeo = new THREE.BoxGeometry(0.14, 0.36, 0.14);
+  const legL = new THREE.Group();
+  const legLMesh = new THREE.Mesh(legGeo, legMat);
+  legLMesh.position.y = -0.18;
+  legLMesh.castShadow = true;
+  legL.add(legLMesh);
+  legL.position.set(-0.13, 0.32, 0);
+  const legR = new THREE.Group();
+  const legRMesh = new THREE.Mesh(legGeo, legMat);
+  legRMesh.position.y = -0.18;
+  legRMesh.castShadow = true;
+  legR.add(legRMesh);
+  legR.position.set(0.13, 0.32, 0);
+  root.add(legL, legR);
+
+  return { root, torso, head, hat, armL, armR, legL, legR };
+}
+
+function animatePlayer(rig, walking, walkPhase, time) {
+  if (walking) {
+    const sw = Math.sin(walkPhase) * 0.6;
+    const swA = Math.sin(walkPhase + Math.PI) * 0.5;
+    rig.legL.rotation.x = sw;
+    rig.legR.rotation.x = -sw;
+    rig.armL.rotation.x = swA;
+    rig.armR.rotation.x = -swA;
+    // Slight body bounce
+    rig.root.position.y = Math.abs(Math.sin(walkPhase)) * 0.06;
+  } else {
+    rig.legL.rotation.x *= 0.85;
+    rig.legR.rotation.x *= 0.85;
+    rig.armL.rotation.x *= 0.85;
+    rig.armR.rotation.x *= 0.85;
+    rig.root.position.y = Math.sin(time * 2.2) * 0.025;
+  }
+  // Subtle hat spin
+  rig.hat.rotation.y += 0.02;
+}
+
+/* ──────────────────────────────────────────────────────────────────────
+ *  Task object builders + per-frame updaters
+ * ────────────────────────────────────────────────────────────────────── */
 
 function buildTaskObjects(scene, door3D) {
   const { config, front } = door3D;
@@ -769,10 +1010,13 @@ function makeTextSprite(text, color, background) {
   canvas.width = 512;
   canvas.height = 160;
   const context = canvas.getContext("2d");
-  context.fillStyle = background;
-  context.fillRect(0, 0, canvas.width, canvas.height);
+  context.clearRect(0, 0, canvas.width, canvas.height);
+  if (background && background !== "rgba(0,0,0,0)") {
+    context.fillStyle = background;
+    context.fillRect(0, 0, canvas.width, canvas.height);
+  }
   context.fillStyle = color;
-  context.font = "700 64px Arial, sans-serif";
+  context.font = "700 110px Arial, sans-serif";
   context.textAlign = "center";
   context.textBaseline = "middle";
   context.fillText(text, canvas.width / 2, canvas.height / 2);

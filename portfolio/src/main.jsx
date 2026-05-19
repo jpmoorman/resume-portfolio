@@ -203,12 +203,25 @@ function App() {
     );
   }
 
-  if (path === "/demos/orbit") {
+  if (path === "/demos/orbit" || path === "/demos/orbit-document-viewer") {
     return (
       <>
         <Header />
         <main>
           <OrbitDemoPage />
+        </main>
+      </>
+    );
+  }
+
+  if (path.startsWith("/demos/")) {
+    const demoId = path.slice("/demos/".length);
+    const project = projects.find((pr) => pr.id === demoId);
+    return (
+      <>
+        <Header />
+        <main>
+          <DemoPlaceholderPage project={project} demoId={demoId} resolvedToolIcons={resolvedToolIcons} />
         </main>
       </>
     );
@@ -371,12 +384,10 @@ function ProjectCard({ project, resolvedToolIcons }) {
           ))}
         </ul>
       </div>
-      {project.id === "orbit-document-viewer" && (
-        <a className="project-demo-link" href="/demos/orbit">
-          Open Orbit system demo
-          <ArrowUpRight size={16} aria-hidden="true" />
-        </a>
-      )}
+      <a className="project-demo-link" href={`/demos/${project.id}`}>
+        {project.id === "orbit-document-viewer" ? "Open Orbit system demo" : "Open demo page"}
+        <ArrowUpRight size={16} aria-hidden="true" />
+      </a>
     </article>
   );
 }
@@ -924,6 +935,75 @@ function Contact() {
           <span>Phone</span>
           <strong>{profile.phone}</strong>
         </a>
+      </div>
+    </section>
+  );
+}
+
+
+function DemoPlaceholderPage({ project, demoId, resolvedToolIcons }) {
+  if (!project) {
+    return (
+      <section className="section demo-section demo-page">
+        <div className="section-heading">
+          <p className="eyebrow">Demo not found</p>
+          <h1>That demo doesn\'t exist yet.</h1>
+          <p>
+            We couldn\'t find a project matching <code>{demoId}</code>. Head back to the demo hub
+            and try another door.
+          </p>
+          <a className="button secondary" href="/#demos">Back to demos</a>
+        </div>
+      </section>
+    );
+  }
+  return (
+    <section className="section demo-section demo-page">
+      <div className="section-heading">
+        <p className="eyebrow">Interactive demo &middot; coming soon</p>
+        <h1>{project.title}</h1>
+        <p>{project.shortDescription}</p>
+        <a className="button secondary" href="/#demos">&larr; Back to demos</a>
+      </div>
+
+      <div className="demo-placeholder">
+        <div className="demo-placeholder-banner">
+          <div>
+            <small>Status</small>
+            <strong>Live walkthrough in progress</strong>
+            <p>
+              The Orbit demo is fully interactive at <a href="/demos/orbit-document-viewer">/demos/orbit-document-viewer</a>.
+              This page is a stand-in for the {project.title} interactive demo while it\'s being built. Below is a public-safe
+              summary of the work and outcomes.
+            </p>
+          </div>
+        </div>
+
+        <div className="project-details">
+          <div>
+            <h4>Problem</h4>
+            <p>{project.problem}</p>
+          </div>
+          <div>
+            <h4>Solution</h4>
+            <p>{project.solution}</p>
+          </div>
+        </div>
+
+        <div className="tool-list" aria-label={`Tools used for ${project.title}`}>
+          {project.tools.map((tool) => (
+            <ToolBadge key={tool} text={tool} resolvedToolIcons={resolvedToolIcons || {}} />
+          ))}
+        </div>
+
+        <div className="impact-list">
+          <h4>Impact</h4>
+          <ul>
+            {project.impact.map((imp) => (<li key={imp}>{imp}</li>))}
+          </ul>
+        </div>
+
+        <a className="button primary" href="/#demos">Return to demo hub</a>
       </div>
     </section>
   );
