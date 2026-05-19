@@ -9,3 +9,5 @@ node_modules/
 dist/
 portfolio/node_modules/
 portfolio/dist/
+!portfolio/public/James_Moorman_Resume.pdf
+!portfolio/public/James_Moorman_Resume.docx

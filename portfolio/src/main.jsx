@@ -228,9 +228,9 @@ function Header() {
         <a href="#skills">Skills</a>
         <a href="#contact">Contact</a>
       </nav>
-      <a className="header-action" href={profile.resumeDownload} download>
+      <a className="header-action" href={profile.resumeDownloads?.pdf || profile.resumeDownload} download>
         <Download size={18} aria-hidden="true" />
-        Resume
+        Resume PDF
       </a>
     </header>
   );
@@ -248,9 +248,9 @@ function Home() {
             View project evidence
             <ArrowUpRight size={18} aria-hidden="true" />
           </a>
-          <a className="button secondary" href={profile.resumeDownload} download>
+          <a className="button secondary" href={profile.resumeDownloads?.pdf || profile.resumeDownload} download>
             <Download size={18} aria-hidden="true" />
-            Download resume
+            Download resume (PDF)
           </a>
         </div>
       </div>
@@ -360,13 +360,13 @@ function Resume({ resolvedToolIcons }) {
         <p>
           This is a web preview in a print-style format so reviewers can scan experience quickly before downloading the full resume file.
         </p>
-        <a className="button primary" href={profile.resumeDownload} download>
+        <a className="button primary" href={profile.resumeDownloads?.pdf || profile.resumeDownload} download>
           <Download size={18} aria-hidden="true" />
-          Download resume
+          Download PDF
         </a>
-        <a className="button secondary" href={profile.resumeDownload} target="_blank" rel="noreferrer">
-          View in browser
-        </a>
+        <a className="button secondary" href={profile.resumeDownloads?.docx || profile.resumeDownload} download>Download Word</a>
+        <a className="button secondary" href={profile.resumeDownloads?.md || profile.resumeDownload} download>Download Markdown</a>
+        <a className="button secondary" href={profile.resumeDownloads?.pdf || profile.resumeDownload} target="_blank" rel="noreferrer">View PDF</a>
       </div>
 
       <div className="resume-preview" aria-label="Print-style resume preview">
@@ -428,7 +428,7 @@ function Resume({ resolvedToolIcons }) {
           <p>Live file preview of the same resume used by the download button.</p>
           <iframe
             className="resume-file-frame"
-            src={profile.resumeDownload}
+            src={profile.resumeDownloads?.pdf || profile.resumeDownload}
             title="Full resume file preview"
           />
         </section>

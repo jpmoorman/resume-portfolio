@@ -4,7 +4,12 @@
   "location": "Eden Prairie, MN",
   "email": "jpmoorman@gmail.com",
   "phone": "651-270-4656",
-  "resumeDownload": "/James_Moorman_Resume.md",
+  "resumeDownload": "/James_Moorman_Resume.pdf",
+  "resumeDownloads": {
+    "pdf": "/James_Moorman_Resume.pdf",
+    "docx": "/James_Moorman_Resume.docx",
+    "md": "/James_Moorman_Resume.md"
+  },
   "summary": "I build practical AI-enabled internal tools that connect disconnected systems, replace fragile spreadsheets, guide frontline decisions, and turn operational knowledge into repeatable software workflows.",
   "targetRole": "AI Workflow Engineering Portfolio",
   "highlights": [
