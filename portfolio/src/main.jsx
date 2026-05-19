@@ -28,32 +28,49 @@ const categoryIcons = {
   "Web Apps": BriefcaseBusiness,
 };
 
+const skillsGroupIconMap = {
+  AI: favicon("openai.com"),
+  "Web Apps": favicon("react.dev"),
+  Data: favicon("microsoft.com"),
+  Automation: favicon("powerautomate.microsoft.com"),
+  Systems: favicon("salesforce.com"),
+};
+
+const favicon = (domain) => `https://www.google.com/s2/favicons?sz=64&domain_url=${domain}`;
+
 const toolIconMap = {
-  "OpenAI Codex": {
-    src: "/tool-icons/codex-openai.svg",
-    alt: "OpenAI logo",
-    className: "codex",
-  },
-  "Claude Code": {
-    src: "/tool-icons/claude-anthropic.svg",
-    alt: "Anthropic logo",
-    className: "claude",
-  },
-  OpenCode: {
-    src: "/tool-icons/opencode.ico",
-    alt: "OpenCode logo",
-    className: "opencode",
-  },
-  Windsurf: {
-    src: "/tool-icons/windsurf.ico",
-    alt: "Windsurf logo",
-    className: "windsurf",
-  },
-  "Microsoft Fabric": {
-    src: "/tool-icons/fabric-microsoft.svg",
-    alt: "Microsoft logo",
-    className: "fabric",
-  },
+  "OpenAI Codex": { src: favicon("openai.com"), alt: "OpenAI logo", className: "codex" },
+  "Claude Code": { src: favicon("anthropic.com"), alt: "Anthropic logo", className: "claude" },
+  OpenCode: { src: favicon("opencode.ai"), alt: "OpenCode logo", className: "opencode" },
+  Windsurf: { src: favicon("windsurf.com"), alt: "Windsurf logo", className: "windsurf" },
+  "GitHub Copilot": { src: favicon("github.com"), alt: "GitHub logo", className: "copilot" },
+  "Prompt frameworks": { src: favicon("openai.com"), alt: "OpenAI logo", className: "prompt" },
+  "Agent-style workflows": { src: favicon("n8n.io"), alt: "n8n logo", className: "agent" },
+  "Custom AI/development skills": { src: favicon("openai.com"), alt: "OpenAI logo", className: "custom-ai" },
+  React: { src: favicon("react.dev"), alt: "React logo", className: "react" },
+  Python: { src: favicon("python.org"), alt: "Python logo", className: "python" },
+  APIs: { src: favicon("swagger.io"), alt: "Swagger logo", className: "apis" },
+  "Internal web tools": { src: favicon("web.dev"), alt: "Web logo", className: "webtools" },
+  "Reusable UI patterns": { src: favicon("mui.com"), alt: "MUI logo", className: "ui-patterns" },
+  "Workflow surfaces": { src: favicon("figma.com"), alt: "Figma logo", className: "workflow-surfaces" },
+  SQL: { src: favicon("postgresql.org"), alt: "PostgreSQL logo", className: "sql" },
+  Dataverse: { src: favicon("powerplatform.microsoft.com"), alt: "Microsoft logo", className: "dataverse" },
+  "Cosmos DB": { src: favicon("azure.microsoft.com"), alt: "Microsoft logo", className: "cosmos" },
+  "Microsoft Fabric": { src: favicon("microsoft.com"), alt: "Microsoft logo", className: "fabric" },
+  "Power BI": { src: favicon("powerbi.microsoft.com"), alt: "Power BI logo", className: "powerbi" },
+  Dashboards: { src: favicon("grafana.com"), alt: "Grafana logo", className: "dashboards" },
+  "Operational analytics": { src: favicon("tableau.com"), alt: "Tableau logo", className: "analytics" },
+  "Power Automate": { src: favicon("powerautomate.microsoft.com"), alt: "Power Automate logo", className: "power-automate" },
+  "Approval workflows": { src: favicon("atlassian.com"), alt: "Atlassian logo", className: "approval" },
+  "Document review support": { src: favicon("adobe.com"), alt: "Adobe logo", className: "document-review" },
+  "Reporting automation": { src: favicon("powerbi.microsoft.com"), alt: "Power BI logo", className: "reporting" },
+  "Workflow tracking": { src: favicon("atlassian.com"), alt: "Atlassian logo", className: "workflow-tracking" },
+  "Salesforce-adjacent workflows": { src: favicon("salesforce.com"), alt: "Salesforce logo", className: "salesforce" },
+  "Warehouse systems": { src: favicon("infor.com"), alt: "Infor logo", className: "warehouse" },
+  "Manufacturing systems": { src: favicon("siemens.com"), alt: "Siemens logo", className: "manufacturing" },
+  "Document control": { src: favicon("sharepoint.com"), alt: "Microsoft SharePoint logo", className: "document-control" },
+  MediaWiki: { src: favicon("mediawiki.org"), alt: "MediaWiki logo", className: "mediawiki" },
+  Windchill: { src: favicon("ptc.com"), alt: "PTC logo", className: "windchill" },
 };
 
 function App() {
@@ -317,7 +334,10 @@ function Skills() {
       <div className="skill-grid">
         {Object.entries(profile.skills).map(([group, skills]) => (
           <article className="skill-card" key={group}>
-            <h3>{group}</h3>
+            <h3 className="skill-group-title">
+              <img src={skillsGroupIconMap[group]} alt={`${group} icon`} />
+              {group}
+            </h3>
             <div>
               {skills.map((skill) => (
                 <ToolBadge key={skill} text={skill} />

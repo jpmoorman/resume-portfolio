@@ -527,6 +527,18 @@ h4 {
   background: #1b1b1b;
 }
 
+.skill-group-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.skill-group-title img {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+}
+
 .skill-card div {
   display: flex;
   flex-wrap: wrap;
