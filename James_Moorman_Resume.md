@@ -1,5 +1,5 @@
 # James Moorman
-Eden Prairie, MN | 651-270-4656 | jpmoorman@gmail.com | Portfolio: https://resume-portfolio-7tr.pages.dev | GitHub: https://github.com/jpmoorman/resume-portfolio
+Eden Prairie, MN | 651-270-4656 | jpmoorman@gmail.com | Portfolio: https://jimmyjames.dev | GitHub: https://github.com/jpmoorman/resume-portfolio
 
 ## Professional Summary
 AI workflow engineer and internal tools builder with experience designing, shipping, and scaling AI-enabled workflows across CRM-adjacent processes, operational data, document systems, and internal web applications. Hands-on with React, Python, SQL, APIs, LLM-assisted development, prompt frameworks, and automation patterns. Strong record of moving ambiguous business needs from prototype to production, measuring adoption and impact, and creating reusable patterns that reduce manual work across distributed teams.
