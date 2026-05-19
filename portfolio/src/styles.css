@@ -645,6 +645,21 @@ h4 {
   font-weight: 700;
 }
 
+.icon-lab-tool-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.icon-lab-tool-name img {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  object-fit: contain;
+  background: #fff;
+  border: 1px solid #ddd7c8;
+}
+
 .icon-lab-row input {
   min-height: 40px;
   padding: 8px 10px;

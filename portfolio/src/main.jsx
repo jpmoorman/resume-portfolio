@@ -484,6 +484,15 @@ function IconLab({ overrides, setOverrides }) {
   const [draft, setDraft] = useState(() => ({ ...overrides }));
   const [jsonDraft, setJsonDraft] = useState("");
   const [adminToken, setAdminToken] = useState(() => window.localStorage.getItem(ICON_ADMIN_TOKEN_KEY) || "");
+  const previewIcons = useMemo(() => {
+    const next = { ...toolIconMap };
+    for (const [name, value] of Object.entries(draft)) {
+      if (!value) continue;
+      const existing = next[name] || { alt: `${name} icon`, className: "custom" };
+      next[name] = { ...existing, src: value };
+    }
+    return next;
+  }, [draft]);
 
   const setValue = (name, value) => setDraft((prev) => ({ ...prev, [name]: value.trim() }));
 
@@ -584,7 +593,13 @@ function IconLab({ overrides, setOverrides }) {
         <div className="icon-lab-grid">
           {iconLabTools.map((tool) => (
             <label key={tool} className="icon-lab-row">
-              <span>{tool}</span>
+              <span className="icon-lab-tool-name">
+                <img
+                  src={previewIcons[tool]?.src || toolIconMap[tool]?.src || favicon("example.com")}
+                  alt={previewIcons[tool]?.alt || `${tool} icon`}
+                />
+                {tool}
+              </span>
               <input
                 type="text"
                 value={draft[tool] || ""}
