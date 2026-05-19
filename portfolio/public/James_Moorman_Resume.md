@@ -83,7 +83,6 @@ AI workflow engineer and internal tools builder with experience designing, shipp
 - AI and Developer Tools: OpenAI Codex, Claude Code, OpenCode, Windsurf, GitHub Copilot, prompt frameworks, agent-style workflows, LLM quality checks
 - Languages and Frameworks: Python, React, SQL
 - Platforms and Data: Azure, Azure Cosmos DB, Microsoft Dataverse, Microsoft Fabric concepts, Power Platform, Power BI
-- Automation and Workflow: Power Apps, Power Automate, approval workflows, document review support, reporting automation, workflow tracking
+- Automation and Workflow: Power Apps, Power Automate, n8n, Copilot Studio, Codex routines, approval workflows, document review support, reporting automation, workflow tracking
 - GTM and Business Systems: Salesforce-adjacent workflows, CRM hygiene, CRM-connected processes, account/order insights, commercial workflow systems, sales support workflows
 - Operational Systems: Warehouse systems, pick-to-light, manufacturing systems, document control, Windchill, Grand Avenue, MediaWiki
-
