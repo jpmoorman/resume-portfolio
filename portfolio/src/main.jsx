@@ -20,6 +20,7 @@ import profile from "./data/profile.json";
 import projects from "./data/projects.json";
 import "./styles.css";
 
+const DemoHub = React.lazy(() => import("./DemoHub.jsx"));
 const categories = ["All", "AI", "Manufacturing", "Quality", "Automation", "Data", "Web Apps"];
 const ICON_LAB_HASH = "#icon-lab-7f3k";
 
@@ -421,35 +422,16 @@ function DemosOverview() {
     <section id="demos" className="section demo-section">
       <div className="section-heading">
         <p className="eyebrow">Interactive demos</p>
-        <h2>Small system demos with their own pages.</h2>
+        <h2>Demo doors open after you solve the room.</h2>
         <p>
-          Each demo opens as a focused sub page so reviewers can inspect one workflow at a time
-          without digging through the full portfolio.
+          Move through the hub, complete the task for a door, and walk through it to open the
+          matching demo page. Returning to the portfolio drops you back at the center.
         </p>
       </div>
 
-      <div className="demo-card-grid">
-        <article className="demo-card">
-          <span className="category-pill">
-            <FileText size={16} aria-hidden="true" />
-            Quality system demo
-          </span>
-          <h3>Orbit controlled document flow</h3>
-          <p>
-            A simplified scanner-to-API-to-document-viewer walkthrough showing how serial context
-            moves through the web app, API layer, matching service, and approved document preview.
-          </p>
-          <div className="tool-list" aria-label="Orbit demo surfaces">
-            {["Web app", "API", "Serial Doc", "Document viewer"].map((tool) => (
-              <span key={tool}>{tool}</span>
-            ))}
-          </div>
-          <a className="project-demo-link" href="/demos/orbit">
-            Open demo page
-            <ArrowUpRight size={16} aria-hidden="true" />
-          </a>
-        </article>
-      </div>
+      <React.Suspense fallback={<div className="demo-hub-loading">Loading demo room...</div>}>
+        <DemoHub />
+      </React.Suspense>
     </section>
   );
 }

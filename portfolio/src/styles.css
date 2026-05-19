@@ -471,6 +471,102 @@ h4 {
   margin-top: auto;
 }
 
+.demo-hub {
+  position: relative;
+  overflow: hidden;
+  min-height: min(74vh, 720px);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #dfe7ef;
+  box-shadow: var(--shadow);
+}
+
+.demo-hub-loading {
+  min-height: 520px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--muted);
+  font-weight: 850;
+}
+
+.demo-hub-canvas {
+  width: 100%;
+  height: min(74vh, 720px);
+  min-height: 520px;
+}
+
+.demo-hub-canvas canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.demo-hub-overlay {
+  position: absolute;
+  inset: 16px 16px auto 16px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) repeat(2, minmax(120px, 0.35fr));
+  gap: 10px;
+  pointer-events: none;
+}
+
+.demo-hub-overlay > div {
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.62);
+  border-radius: 8px;
+  background: rgba(17, 17, 17, 0.78);
+  color: #fff;
+  backdrop-filter: blur(10px);
+}
+
+.demo-hub-overlay small,
+.demo-hub-overlay strong {
+  display: block;
+}
+
+.demo-hub-overlay small {
+  color: #d8d8d8;
+}
+
+.demo-hub-overlay strong {
+  overflow-wrap: anywhere;
+}
+
+.demo-hub-controls {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+}
+
+.demo-hub-controls div {
+  display: flex;
+  gap: 8px;
+}
+
+.demo-hub-controls button {
+  width: 56px;
+  height: 48px;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 8px;
+  background: rgba(17, 17, 17, 0.78);
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 850;
+  backdrop-filter: blur(10px);
+}
+
+.demo-hub-controls button:active {
+  transform: translateY(1px);
+  background: var(--blue);
+}
+
 .orbit-demo {
   display: grid;
   gap: 18px;
@@ -1014,6 +1110,11 @@ h4 {
   .flow-node:not(:last-child)::after {
     display: none;
   }
+
+  .demo-hub-overlay {
+    grid-template-columns: 1fr;
+    inset-inline: 12px;
+  }
 }
 
 @media (max-width: 760px) {
@@ -1085,6 +1186,20 @@ h4 {
 
   .button {
     max-width: 100%;
+  }
+
+  .demo-hub {
+    min-height: 620px;
+  }
+
+  .demo-hub-canvas {
+    height: 620px;
+    min-height: 620px;
+  }
+
+  .demo-hub-controls {
+    left: 16px;
+    right: 16px;
   }
 
   .icon-lab-row {
