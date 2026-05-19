@@ -209,6 +209,15 @@ export default function DemoHub() {
     spawnPad.receiveShadow = true;
     scene.add(spawnPad);
 
+    // Glow ring around the spawn pad (soft pulse)
+    const spawnGlow = new THREE.Mesh(
+      new THREE.RingGeometry(1.5, 1.95, 48),
+      new THREE.MeshBasicMaterial({ color: 0xffd277, transparent: true, opacity: 0.35, side: THREE.DoubleSide })
+    );
+    spawnGlow.rotation.x = -Math.PI / 2;
+    spawnGlow.position.y = 0.02;
+    scene.add(spawnGlow);
+
     // Decorative star on the spawn pad
     const star = makeTextSprite("★", "#ffd277", "rgba(0,0,0,0)");
     star.position.set(0, 0.13, 0);
@@ -287,15 +296,24 @@ export default function DemoHub() {
       lintel.castShadow = true;
       lintel.receiveShadow = true;
 
-      // Dark passage tunnel behind the doorway so it reads as depth.
-      const passageMat = new THREE.MeshStandardMaterial({ color: 0x0d0e12, roughness: 0.95 });
-      const passageBack = new THREE.Mesh(new THREE.PlaneGeometry(1.92, 2.85), passageMat);
+      // Colored portal glow inside the doorway — looks like a magic
+      // teleporter when the doors swing open. Two layers: a darker back
+      // wall (depth) and a glowing accent plane in front of it.
+      const portalDarkMat = new THREE.MeshStandardMaterial({ color: 0x141526, roughness: 0.95 });
+      const passageBack = new THREE.Mesh(new THREE.PlaneGeometry(1.92, 2.85), portalDarkMat);
       passageBack.position.set(0, 1.43, -0.6);
-      // Passage receives light dimly; cast shadow off
-      const passageTop = new THREE.Mesh(new THREE.PlaneGeometry(1.92, 0.8), passageMat);
+      const portalGlowMat = new THREE.MeshBasicMaterial({
+        color: door.accent,
+        transparent: true,
+        opacity: 0.55,
+      });
+      const portalGlow = new THREE.Mesh(new THREE.PlaneGeometry(1.7, 2.55), portalGlowMat);
+      portalGlow.position.set(0, 1.43, -0.45);
+      portalGlow.userData = { phase: Math.random() * Math.PI * 2 };
+      const passageTop = new THREE.Mesh(new THREE.PlaneGeometry(1.92, 0.8), portalDarkMat);
       passageTop.position.set(0, 2.85, -0.2);
       passageTop.rotation.x = Math.PI / 2;
-      const passageL = new THREE.Mesh(new THREE.PlaneGeometry(0.8, 2.85), passageMat);
+      const passageL = new THREE.Mesh(new THREE.PlaneGeometry(0.8, 2.85), portalDarkMat);
       passageL.position.set(-0.96, 1.43, -0.2);
       passageL.rotation.y = Math.PI / 2;
       const passageR = passageL.clone();
@@ -323,18 +341,26 @@ export default function DemoHub() {
         metalness: 0.1,
         emissive: 0x000000,
       });
+      // Slightly darker accent for the recessed panel
+      const accentDark = darkenHex(door.color, 0.55);
+      const panelMat = new THREE.MeshStandardMaterial({ color: accentDark, roughness: 0.55 });
+
       const leftLeaf = new THREE.Group();
       const leftSlab = new THREE.Mesh(new THREE.BoxGeometry(0.92, 2.55, 0.16), leafMaterial.clone());
-      leftSlab.position.set(0.46, 0, 0); // pivot on left edge of leaf -> slab offset to right
+      leftSlab.position.set(0.46, 0, 0);
       leftSlab.castShadow = true;
-      leftLeaf.add(leftSlab);
+      const leftPanel = new THREE.Mesh(new THREE.BoxGeometry(0.6, 1.7, 0.02), panelMat);
+      leftPanel.position.set(0.46, 0.2, 0.09);
+      leftLeaf.add(leftSlab, leftPanel);
       leftLeaf.position.set(-0.46, 1.32, 0.16);
 
       const rightLeaf = new THREE.Group();
       const rightSlab = new THREE.Mesh(new THREE.BoxGeometry(0.92, 2.55, 0.16), leafMaterial.clone());
-      rightSlab.position.set(-0.46, 0, 0); // pivot on right edge
+      rightSlab.position.set(-0.46, 0, 0);
       rightSlab.castShadow = true;
-      rightLeaf.add(rightSlab);
+      const rightPanel = new THREE.Mesh(new THREE.BoxGeometry(0.6, 1.7, 0.02), panelMat);
+      rightPanel.position.set(-0.46, 0.2, 0.09);
+      rightLeaf.add(rightSlab, rightPanel);
       rightLeaf.position.set(0.46, 1.32, 0.16);
 
       // Category icon embossed on each leaf
@@ -359,8 +385,8 @@ export default function DemoHub() {
 
       // Title plaque above arch
       const plaque = makeTextSprite(door.title, "#ffffff", "#171717");
-      plaque.position.set(0, 3.45, 0.3);
-      plaque.scale.set(2.0, 0.6, 1);
+      plaque.position.set(0, 3.55, 0.3);
+      plaque.scale.set(1.3, 0.36, 1);
 
       // Glow ring (hidden until unlock)
       const glow = new THREE.Mesh(
@@ -371,7 +397,7 @@ export default function DemoHub() {
       glow.position.set(0, 0.08, 0.5);
       glow.scale.set(0.01, 0.01, 0.01);
 
-      group.add(leftJamb, rightJamb, lintel, passageBack, passageTop, passageL, passageR, arch, leftLeaf, rightLeaf, plaque, glow);
+      group.add(leftJamb, rightJamb, lintel, passageBack, portalGlow, passageTop, passageL, passageR, arch, leftLeaf, rightLeaf, plaque, glow);
       scene.add(group);
 
       const door3D = {
@@ -384,6 +410,7 @@ export default function DemoHub() {
         rightSlab,
         plaque,
         glow,
+        portalGlow,
         sparks: [],
         sparkActive: false,
         sparkLife: 0,
@@ -683,6 +710,9 @@ export default function DemoHub() {
         s3d.rotation.x += delta * s3d.userData.spin * 0.4;
       });
 
+      // Pulse the spawn pad glow
+      spawnGlow.material.opacity = 0.28 + Math.sin(clock.elapsedTime * 1.5) * 0.12;
+
       // Spawn footstep dust on each footfall when walking
       const walkSin = Math.sin(walkPhase);
       const wasNeg = animateStateRef.walkSinPrev < 0;
@@ -764,6 +794,15 @@ export default function DemoHub() {
           d.glow.material.opacity = Math.max(0, 0.7 - d.openProgress * 0.7);
         }
 
+        // Portal pulse — gently throb the inner glow + slight scale
+        if (d.portalGlow) {
+          const t = clock.elapsedTime + d.portalGlow.userData.phase;
+          const pulse = 0.45 + Math.sin(t * 1.6) * 0.18;
+          d.portalGlow.material.opacity = pulse;
+          d.portalGlow.scale.x = 1 + Math.sin(t * 1.1) * 0.05;
+          d.portalGlow.scale.y = 1 + Math.cos(t * 1.3) * 0.04;
+        }
+
         // Sparks
         if (d.sparkActive) {
           d.sparkLife += delta;
@@ -818,9 +857,9 @@ export default function DemoHub() {
       }
       if (progressChanged) { lastProgress = progressSnap; setProgress(progressSnap); }
 
-      const camTarget = tmpVec.set(player.position.x * 0.35, 9.4, player.position.z * 0.35 + 12);
+      const camTarget = tmpVec.set(player.position.x * 0.4, 7.8, player.position.z * 0.4 + 10);
       camera.position.lerp(camTarget, 0.05);
-      camera.lookAt(player.position.x * 0.5, 0.6, player.position.z * 0.5 - 1.4);
+      camera.lookAt(player.position.x * 0.55, 0.7, player.position.z * 0.55 - 1.4);
 
       renderer.render(scene, camera);
       mount._demoHubFrame = requestAnimationFrame(animate);
@@ -1652,4 +1691,11 @@ function makeTileTexture() {
   const tex = new THREE.CanvasTexture(canvas);
   tex.colorSpace = THREE.SRGBColorSpace;
   return tex;
+}
+
+function darkenHex(hex, factor) {
+  const r = (hex >> 16) & 0xff;
+  const g = (hex >> 8) & 0xff;
+  const b = hex & 0xff;
+  return ((Math.round(r * factor) & 0xff) << 16) | ((Math.round(g * factor) & 0xff) << 8) | (Math.round(b * factor) & 0xff);
 }
