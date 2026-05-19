@@ -495,14 +495,6 @@ h4 {
   margin-top: 10px;
 }
 
-.resume-file-frame {
-  width: 100%;
-  min-height: 560px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: #fff;
-}
-
 .skills-section {
   background: #131313;
   color: #fff;

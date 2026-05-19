@@ -358,7 +358,7 @@ function Resume({ resolvedToolIcons }) {
         <p className="eyebrow">Resume</p>
         <h2>Resume preview before download.</h2>
         <p>
-          This is a web preview in a print-style format so reviewers can scan experience quickly before downloading the full resume file.
+          A formatted web version of the same resume available in PDF, Word, and Markdown.
         </p>
         <a className="button primary" href={profile.resumeDownloads?.pdf || profile.resumeDownload} download>
           <Download size={18} aria-hidden="true" />
@@ -366,44 +366,65 @@ function Resume({ resolvedToolIcons }) {
         </a>
         <a className="button secondary" href={profile.resumeDownloads?.docx || profile.resumeDownload} download>Download Word</a>
         <a className="button secondary" href={profile.resumeDownloads?.md || profile.resumeDownload} download>Download Markdown</a>
-        <a className="button secondary" href={profile.resumeDownloads?.pdf || profile.resumeDownload} target="_blank" rel="noreferrer">View PDF</a>
       </div>
 
       <div className="resume-preview" aria-label="Print-style resume preview">
         <header>
           <h3>{profile.name}</h3>
-          <p>{profile.location} | {profile.phone} | {profile.email}</p>
+          <p>{profile.location} | {profile.phone} | {profile.email} | Portfolio: jimmyjames.dev | GitHub: github.com/jpmoorman/resume-portfolio</p>
         </header>
 
         <section>
-          <h4>Summary</h4>
+          <h4>Professional Summary</h4>
           <p>
-            Software development and operations technology leader building AI-enabled workflows,
-            internal tools, data systems, and automation across manufacturing, quality, distribution,
-            program management, and commercial operations.
+            AI workflow engineer and internal tools builder with experience designing, shipping, and scaling AI-enabled workflows across CRM-adjacent processes, operational data, document systems, and internal web applications. Hands-on with React, Python, SQL, APIs, LLM-assisted development, prompt frameworks, and automation patterns. Strong record of moving ambiguous business needs from prototype to production, measuring adoption and impact, and creating reusable patterns that reduce manual work across distributed teams.
           </p>
         </section>
 
         <section>
-          <h4>Experience</h4>
+          <h4>Core Skills</h4>
+          <ul>
+            <li>AI Workflow Engineering: LLM-assisted development, prompt frameworks, agent-style workflows, AI quality checks, reusable automation patterns</li>
+            <li>Internal Tools: React, Python, APIs, SQL, dashboards, workflow applications, validation logic</li>
+            <li>GTM / CRM Systems: Salesforce-adjacent workflows, CRM-connected processes, order workflows, reporting automation, adoption tracking</li>
+            <li>Data Platforms: SQL, Microsoft Dataverse, Azure Cosmos DB, Microsoft Fabric concepts, Power BI, Power Platform</li>
+            <li>Execution: Stakeholder discovery, prototype-to-production delivery, rollout planning, executive reporting, business-impact measurement</li>
+          </ul>
+        </section>
+
+        <section>
+          <h4>Best Fit for Sales AI Engineering</h4>
+          <ul>
+            <li>Built internal workflow tools that reduced manual execution across sales-adjacent, operations, quality, warehouse, and document-control processes.</li>
+            <li>Connected fragmented systems using APIs, SQL, Python, React, Power Platform, Dataverse, Cosmos DB, and custom web tools.</li>
+            <li>Used AI-assisted development tools including OpenAI Codex, Claude Code, OpenCode, Windsurf, and GitHub Copilot to accelerate prototype-to-production delivery.</li>
+            <li>Created reusable implementation patterns for internal tools, dashboards, validation logic, and workflow automation.</li>
+            <li>Measured business impact through adoption, accuracy, throughput, cycle time, cost reduction, and executive-level operating metrics.</li>
+          </ul>
+        </section>
+
+        <section>
+          <h4>Professional Experience</h4>
           <article>
-            <p className="role-line"><strong>Starkey Laboratories</strong> | Senior Manager, AI-Accelerated Software Development & Operations Technology | 2022 - Present</p>
+            <p className="role-line"><strong>Starkey Laboratories</strong> | Senior Manager, AI Workflow Engineering and Internal Tools | 09/2022 - Present</p>
             <ul>
-              <li>Built unified internal software experiences with React front ends and Python back ends.</li>
-              <li>Improved order accuracy from 97% to 99.7% and shipment capacity from 1,800/day to 4,200/day.</li>
-              <li>Reduced overhead costs by $2.2M annually and identified $634k annual incorrect-order shipping exposure.</li>
-              <li>Developed reusable AI/development patterns for internal workflow implementation.</li>
+              <li>Designed and shipped AI-enabled internal tools, workflow automations, dashboards, and system integrations across commercial operations, manufacturing, quality, distribution, and program execution.</li>
+              <li>Built React and Python applications that connected CRM-connected workflows, warehouse systems, document-control systems, SQL, Dataverse, Cosmos DB, APIs, and custom operational tools.</li>
+              <li>Applied LLM-assisted development workflows using OpenAI Codex, Claude Code, OpenCode, Windsurf, and GitHub Copilot to accelerate internal software delivery.</li>
+              <li>Improved order accuracy from 97% to 99.7%, increased shipment capacity from 1,800 to 4,200 shipments per day, and reduced annual overhead costs by $2.2M.</li>
+              <li>Reduced documentation cycle time from 8 weeks to 4 weeks and reduced annual packaging and shipping expenditures by approximately $1.7M.</li>
             </ul>
           </article>
           <article>
-            <p className="role-line"><strong>Monteris Medical</strong> | Senior Engineer / Documentation Systems Lead | 2020 - 2022</p>
+            <p className="role-line"><strong>Monteris Medical</strong> | Senior Engineer / Documentation Systems Lead | 12/2020 - 08/2022</p>
             <ul>
-              <li>Led development, verification, validation, and launch of a new MRI-compatible product in 18 months.</li>
-              <li>Built controlled documentation systems to improve traceability and reduce unmanaged local files.</li>
+              <li>Led development, verification, validation, and launch of a new MRI-compatible product for shallow tumor treatment within 18 months.</li>
+              <li>Built a MediaWiki-based documentation control system to move static engineering and quality documents into a controlled, searchable platform.</li>
+              <li>Supported launch generating approximately $25K in weekly revenue and 2,600 units sold in the first year.</li>
             </ul>
           </article>
           <article>
-            <p className="role-line"><strong>Donaldson</strong> | Product Manager | 2018 - 2020</p>
+            <p className="role-line"><strong>Donaldson</strong> | Product Manager | 02/2018 - 12/2020</p>
             <ul>
               <li>Supported major enterprise customers through product development and strategic planning.</li>
               <li>Built new revenue pipelines during the pandemic through market and network execution.</li>
@@ -412,8 +433,23 @@ function Resume({ resolvedToolIcons }) {
         </section>
 
         <section>
-          <h4>Core Stack</h4>
-          <p>React | Python | SQL | APIs | Microsoft Fabric | Dataverse | Power Platform | Azure | Cosmos DB | Workflow Automation</p>
+          <h4>Representative Systems Delivered</h4>
+          <ul>
+            <li>CRM-adjacent workflow tooling: Built workflow tools that connected order, customer, fulfillment, and reporting processes outside the core CRM system.</li>
+            <li>Warehouse execution dashboards: Integrated pick, routing, correction, and fulfillment workflows to improve order accuracy and shipment throughput.</li>
+            <li>Controlled document viewer: Built a controlled-access web viewer for approved production documents, reducing licensing friction and improving source-document access.</li>
+            <li>Leadership reporting automation: Built Power Platform and Dataverse tools that automated project and program reporting for executive updates.</li>
+          </ul>
+        </section>
+
+        <section>
+          <h4>Technical Skills and Tools</h4>
+          <ul>
+            <li>AI and Developer Tools: OpenAI Codex, Claude Code, OpenCode, Windsurf, GitHub Copilot, prompt frameworks, agent-style workflows, LLM quality checks</li>
+            <li>Languages and Frameworks: Python, React, SQL</li>
+            <li>Platforms and Data: Azure, Azure Cosmos DB, Microsoft Dataverse, Microsoft Fabric concepts, Power Platform, Power BI</li>
+            <li>Automation and Workflow: Power Apps, Power Automate, n8n, Copilot Studio, Codex routines, approval workflows, document review support, reporting automation, workflow tracking</li>
+          </ul>
           <div className="resume-tool-icons" aria-label="Primary AI tool stack">
             <ToolBadge text="OpenAI Codex" resolvedToolIcons={resolvedToolIcons} />
             <ToolBadge text="Claude Code" resolvedToolIcons={resolvedToolIcons} />
@@ -421,16 +457,6 @@ function Resume({ resolvedToolIcons }) {
             <ToolBadge text="OpenCode" resolvedToolIcons={resolvedToolIcons} />
             <ToolBadge text="Microsoft Fabric" resolvedToolIcons={resolvedToolIcons} />
           </div>
-        </section>
-
-        <section>
-          <h4>Full Resume File</h4>
-          <p>Live file preview of the same resume used by the download button.</p>
-          <iframe
-            className="resume-file-frame"
-            src={profile.resumeDownloads?.pdf || profile.resumeDownload}
-            title="Full resume file preview"
-          />
         </section>
       </div>
     </section>
