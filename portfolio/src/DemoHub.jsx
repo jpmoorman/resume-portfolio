@@ -383,6 +383,12 @@ export default function DemoHub() {
     let lastProgress = {};
     let walkPhase = 0;
 
+    // Mario-style movement tuning
+    const MAX_SPEED = 5.0;
+    const ACCEL = 14;     // body acceleration toward target
+    const FRICTION = 7;   // deceleration when no input (slide feel)
+    const velocity = new THREE.Vector3(0, 0, 0);
+
     const tmpVec = new THREE.Vector3();
     const playerPlanar = new THREE.Vector3();
 
@@ -396,23 +402,46 @@ export default function DemoHub() {
 
     const animate = () => {
       const delta = Math.min(clock.getDelta(), 0.05);
-      const speed = 4.6 * delta;
 
-      const move = new THREE.Vector3(0, 0, 0);
-      if (keys.has("w") || keys.has("arrowup")) move.z -= 1;
-      if (keys.has("s") || keys.has("arrowdown")) move.z += 1;
-      if (keys.has("a") || keys.has("arrowleft")) move.x -= 1;
-      if (keys.has("d") || keys.has("arrowright")) move.x += 1;
+      // ── Mario-style movement: target velocity from input, real velocity
+      // accelerates toward it; friction handles slide on release and during
+      // direction changes. Legs run at full visual pace from the moment any
+      // input is pressed (intent-driven) even while the body is still
+      // catching up. Body rotation eases toward velocity heading so a
+      // direction change pivots in a smooth arc rather than snapping.
+      const inputDir = new THREE.Vector3(0, 0, 0);
+      if (keys.has("w") || keys.has("arrowup")) inputDir.z -= 1;
+      if (keys.has("s") || keys.has("arrowdown")) inputDir.z += 1;
+      if (keys.has("a") || keys.has("arrowleft")) inputDir.x -= 1;
+      if (keys.has("d") || keys.has("arrowright")) inputDir.x += 1;
+      const hasInput = inputDir.lengthSq() > 0;
 
-      const isWalking = move.lengthSq() > 0;
+      if (hasInput) {
+        inputDir.normalize().multiplyScalar(MAX_SPEED);
+        const dv = inputDir.clone().sub(velocity);
+        const stepLen = ACCEL * delta;
+        if (dv.length() <= stepLen) velocity.copy(inputDir);
+        else velocity.add(dv.normalize().multiplyScalar(stepLen));
+      } else {
+        const sp = velocity.length();
+        if (sp > 0) {
+          const fric = FRICTION * delta;
+          if (fric >= sp) velocity.set(0, 0, 0);
+          else velocity.sub(velocity.clone().normalize().multiplyScalar(fric));
+        }
+      }
 
-      if (isWalking) {
-        move.normalize().multiplyScalar(speed);
-        const next = player.position.clone().add(move);
+      const isMoving = velocity.lengthSq() > 0.0004;
+      if (isMoving) {
+        const next = player.position.clone().addScaledVector(velocity, delta);
         const r = Math.sqrt(next.x * next.x + next.z * next.z);
         if (r > FLOOR_RADIUS - 0.5) {
           next.x = (next.x / r) * (FLOOR_RADIUS - 0.5);
           next.z = (next.z / r) * (FLOOR_RADIUS - 0.5);
+          // Kill outward component so we don't keep "pushing" the wall
+          const outward = new THREE.Vector3(next.x, 0, next.z).normalize();
+          const dot = velocity.dot(outward);
+          if (dot > 0) velocity.addScaledVector(outward, -dot);
         }
         doors.forEach((d) => {
           if (d.unlocked) return;
@@ -423,19 +452,39 @@ export default function DemoHub() {
           if (dist2 < minDist && dist2 > 0.0001) {
             next.x = d.group.position.x + (dx2 / dist2) * minDist;
             next.z = d.group.position.z + (dz2 / dist2) * minDist;
+            // Cancel inward velocity so the player doesn't keep mashing the door
+            const inward = new THREE.Vector3(
+              d.group.position.x - next.x,
+              0,
+              d.group.position.z - next.z
+            ).normalize();
+            const dot = velocity.dot(inward);
+            if (dot > 0) velocity.addScaledVector(inward, -dot);
           }
         });
         player.position.x = next.x;
         player.position.z = next.z;
-        facingDir.copy(move).setY(0).normalize();
-        player.rotation.y = Math.atan2(facingDir.x, facingDir.z);
-        walkPhase += delta * 12;
-      } else {
-        walkPhase *= 0.86;
+
+        // Smooth heading interpolation toward velocity direction
+        const heading = Math.atan2(velocity.x, velocity.z);
+        player.rotation.y = lerpAngle(player.rotation.y, heading, 0.18);
       }
 
+      // Leg animation phase. When intent is present, run feet at full pace
+      // regardless of body speed so the legs "start running" before the body
+      // catches up — that's the Mario 64 feel. While sliding (no input but
+      // still moving), legs animate proportional to remaining speed.
+      const speedRatio = Math.min(1, velocity.length() / MAX_SPEED);
+      const phaseSpeed = hasInput ? 14 : 14 * speedRatio;
+      walkPhase += delta * phaseSpeed;
+
+      // Slide tilt: when input direction differs from velocity, lean into the
+      // turn slightly; when decelerating with no input, lean back a touch.
+      const sliding = !hasInput && speedRatio > 0.1;
+      const legsActive = hasInput || speedRatio > 0.05;
+
       // Animate player parts
-      animatePlayer(playerRig, isWalking, walkPhase, clock.elapsedTime);
+      animatePlayer(playerRig, legsActive, walkPhase, clock.elapsedTime, sliding, speedRatio);
 
       playerPlanar.set(player.position.x, 0, player.position.z);
 
@@ -780,16 +829,18 @@ function buildPlayer() {
   return { root, torso, head, hat, armL, armR, legL, legR };
 }
 
-function animatePlayer(rig, walking, walkPhase, time) {
-  if (walking) {
-    const sw = Math.sin(walkPhase) * 0.6;
-    const swA = Math.sin(walkPhase + Math.PI) * 0.5;
+function animatePlayer(rig, legsActive, walkPhase, time, sliding, speedRatio) {
+  if (legsActive) {
+    // Amplitude scales with how fast the body is going (so a slow slide
+    // has small leg sweep, a full sprint has bigger sweep).
+    const amp = 0.35 + 0.45 * Math.max(0.4, speedRatio); // 0.53 .. 0.8
+    const sw = Math.sin(walkPhase) * amp;
+    const swA = Math.sin(walkPhase + Math.PI) * (amp * 0.85);
     rig.legL.rotation.x = sw;
     rig.legR.rotation.x = -sw;
     rig.armL.rotation.x = swA;
     rig.armR.rotation.x = -swA;
-    // Slight body bounce
-    rig.root.position.y = Math.abs(Math.sin(walkPhase)) * 0.06;
+    rig.root.position.y = Math.abs(Math.sin(walkPhase)) * (0.04 + 0.04 * speedRatio);
   } else {
     rig.legL.rotation.x *= 0.85;
     rig.legR.rotation.x *= 0.85;
@@ -797,8 +848,19 @@ function animatePlayer(rig, walking, walkPhase, time) {
     rig.armR.rotation.x *= 0.85;
     rig.root.position.y = Math.sin(time * 2.2) * 0.025;
   }
+  // Slide lean: when no input but still moving, lean back slightly as if
+  // skidding to a stop. The lean is along the local X (forward axis is +Z).
+  const targetTilt = sliding ? -0.18 * speedRatio : 0;
+  rig.root.rotation.x = rig.root.rotation.x * 0.85 + targetTilt * 0.15;
   // Subtle hat spin
   rig.hat.rotation.y += 0.02;
+}
+
+// Interpolate between two angles taking the shortest path around the circle.
+function lerpAngle(a, b, t) {
+  const TWO_PI = Math.PI * 2;
+  let diff = ((b - a) % TWO_PI + TWO_PI + Math.PI) % TWO_PI - Math.PI;
+  return a + diff * t;
 }
 
 /* ──────────────────────────────────────────────────────────────────────
