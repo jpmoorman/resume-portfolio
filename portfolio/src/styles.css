@@ -1574,3 +1574,57 @@ h4 {
   align-items: center;
   gap: 8px;
 }
+
+/* Smaller, more transparent HUD so it doesn't dominate the canvas */
+.demo-hub-overlay {
+  inset: 12px 12px auto 12px;
+  grid-template-columns: minmax(0, 1.5fr) auto auto;
+  gap: 8px;
+}
+
+.demo-hub-overlay > div {
+  padding: 8px 12px;
+  background: rgba(17, 17, 17, 0.62);
+  border-radius: 6px;
+}
+
+.demo-hub-overlay small {
+  font-size: 0.66rem;
+}
+
+.demo-hub-task strong {
+  font-size: 0.86rem;
+}
+
+.demo-hub-stat strong {
+  font-size: 0.94rem;
+}
+
+/* Toast popup when a door unlocks */
+.demo-hub-toast {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 14px 24px;
+  background: linear-gradient(135deg, #245ee8, #4081ff);
+  color: #fff;
+  border: 2px solid #ffd277;
+  border-radius: 10px;
+  font-weight: 850;
+  font-size: 1.1rem;
+  letter-spacing: 0.5px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  pointer-events: none;
+  box-shadow: 0 10px 32px rgba(17, 17, 17, 0.4);
+  animation: demoHubToastIn 0.32s ease-out forwards, demoHubToastOut 0.4s ease-in 1.6s forwards;
+}
+
+@keyframes demoHubToastIn {
+  from { opacity: 0; transform: translate(-50%, -40%) scale(0.92); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+@keyframes demoHubToastOut {
+  to { opacity: 0; transform: translate(-50%, -60%) scale(0.96); }
+}

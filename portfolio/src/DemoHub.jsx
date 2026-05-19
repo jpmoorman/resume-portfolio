@@ -107,6 +107,8 @@ export default function DemoHub() {
   const [fadeActive, setFadeActive] = useState(false);
   const [chatInput, setChatInput] = useState("");
   const [aiStatus, setAiStatus] = useState(null);
+  const [toast, setToast] = useState(null);
+  const toastTimerRef = useRef(null);
   const aiQueueRef = useRef([]);
   const aiActionStateRef = useRef({});
   const doorsRef = useRef([]);
@@ -769,6 +771,10 @@ export default function DemoHub() {
             d.unlocked = true;
             d.sparkActive = true;
             d.sparkLife = 0;
+            // Show toast
+            setToast(`${d.config.title} door unlocked!`);
+            clearTimeout(toastTimerRef.current);
+            toastTimerRef.current = setTimeout(() => setToast(null), 2200);
             // Spawn sparks
             for (let i = 0; i < 14; i += 1) {
               const spark = new THREE.Mesh(
@@ -999,10 +1005,12 @@ export default function DemoHub() {
             <small>Doors open</small>
             <strong>{unlockedCount}/{DOOR_CONFIGS.length}</strong>
           </div>
-          <div className="demo-hub-stat">
-            <small>Near door</small>
-            <strong>{nearDoor ? doorTitleById[nearDoor] : "—"}</strong>
-          </div>
+          {nearDoor && (
+            <div className="demo-hub-stat">
+              <small>Near door</small>
+              <strong>{doorTitleById[nearDoor]}</strong>
+            </div>
+          )}
         </div>
         <div className="demo-hub-controls" aria-label="Movement controls">
           {moveButton("w", "Move up", "▲")}
@@ -1020,6 +1028,11 @@ export default function DemoHub() {
           <span>Walk through an open door to enter that demo</span>
         </div>
         <div ref={faderRef} className={`demo-hub-fader${fadeActive ? " active" : ""}`} aria-hidden="true" />
+        {toast && (
+          <div className="demo-hub-toast" role="status" aria-live="polite">
+            {toast}
+          </div>
+        )}
       </div>
 
       <div className="demo-hub-chat" role="region" aria-label="Plain language command for sprite">
@@ -1358,15 +1371,36 @@ function buildTaskObjects(scene, door3D) {
     }
     door3D.taskState = { type: "sequence", order, idx: 0, plates };
   } else if (task.type === "walk") {
-    const marker = new THREE.Mesh(
-      new THREE.ConeGeometry(0.35, 0.7, 14),
-      new THREE.MeshStandardMaterial({ color: config.accent, emissive: 0x3a1b00, emissiveIntensity: 0.5, roughness: 0.4 })
+    const beaconGroup = new THREE.Group();
+    const beaconBase = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.32, 0.4, 0.18, 18),
+      new THREE.MeshStandardMaterial({ color: 0x3a2c1f, roughness: 0.7 })
     );
-    marker.position.copy(at(1.6, 0, 0.55));
-    marker.castShadow = true;
-    marker.userData.baseY = marker.position.y;
-    scene.add(marker);
-    door3D.taskObjects.push(marker);
+    beaconBase.position.y = 0.09;
+    beaconBase.castShadow = true;
+    const beaconShaft = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.14, 0.18, 0.9, 18),
+      new THREE.MeshStandardMaterial({ color: config.accent, emissive: config.accent, emissiveIntensity: 0.5, roughness: 0.5 })
+    );
+    beaconShaft.position.y = 0.6;
+    beaconShaft.castShadow = true;
+    const beaconStar = new THREE.Mesh(
+      new THREE.OctahedronGeometry(0.32, 0),
+      new THREE.MeshStandardMaterial({ color: 0xffe072, emissive: 0xff9c00, emissiveIntensity: 0.9, roughness: 0.3 })
+    );
+    beaconStar.position.y = 1.25;
+    beaconStar.castShadow = true;
+    // Vertical light beam (thin cylinder, additive-feel via transparency)
+    const beam = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.12, 0.22, 2.4, 14, 1, true),
+      new THREE.MeshBasicMaterial({ color: config.accent, transparent: true, opacity: 0.22, side: THREE.DoubleSide })
+    );
+    beam.position.y = 2.2;
+    beaconGroup.add(beaconBase, beaconShaft, beaconStar, beam);
+    beaconGroup.position.copy(at(1.6, 0, 0));
+    beaconGroup.userData = { baseY: beaconStar.position.y, star: beaconStar, beam };
+    scene.add(beaconGroup);
+    door3D.taskObjects.push(beaconGroup);
     door3D.taskState = { type: "walk" };
   } else if (task.type === "waypoints") {
     const positions = [at(1.1, -1.1, 0.18), at(1.1, 1.1, 0.18), at(2.4, -1.1, 0.18), at(2.4, 1.1, 0.18)];
@@ -1449,9 +1483,13 @@ function updateTask(door3D, player, playerPlanar, delta) {
     });
   } else if (t.type === "walk") {
     const marker = door3D.taskObjects[0];
-    marker.rotation.y += delta * 1.6;
-    marker.position.y = marker.userData.baseY + Math.sin(time * 2.4) * 0.08;
-    if (playerPlanar.distanceTo(marker.position) < 0.85) {
+    if (marker.userData.star) {
+      marker.userData.star.rotation.y += delta * 1.6;
+      marker.userData.star.rotation.x += delta * 0.9;
+      marker.userData.star.position.y = marker.userData.baseY + Math.sin(time * 2.4) * 0.08;
+      marker.userData.beam.material.opacity = 0.18 + Math.sin(time * 2.0) * 0.08;
+    }
+    if (playerPlanar.distanceTo(marker.position) < 0.95) {
       marker.visible = false;
       t.completed = true;
     }
@@ -1482,14 +1520,28 @@ function taskProgress(door3D) {
 }
 
 function makePlate(color, accent) {
+  const group = new THREE.Group();
   const plate = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.7, 0.78, 0.12, 24),
-    new THREE.MeshStandardMaterial({ color, emissive: accent, emissiveIntensity: 0.3, roughness: 0.4, metalness: 0.1 })
+    new THREE.CylinderGeometry(0.6, 0.7, 0.22, 28),
+    new THREE.MeshStandardMaterial({ color, emissive: accent, emissiveIntensity: 0.35, roughness: 0.4, metalness: 0.1 })
   );
+  plate.position.y = 0.11;
   plate.castShadow = false;
   plate.receiveShadow = true;
-  plate.userData = { glow: 0 };
-  return plate;
+  // Soft top inset for a recessed-button look
+  const inset = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.42, 0.44, 0.03, 24),
+    new THREE.MeshStandardMaterial({ color: accent, emissive: accent, emissiveIntensity: 0.5, roughness: 0.3 })
+  );
+  inset.position.y = 0.23;
+  group.add(plate, inset);
+  group.userData = { glow: 0 };
+  // Expose material on the group for existing code that reads plate.material
+  Object.defineProperty(group, "material", {
+    get() { return plate.material; },
+    configurable: true,
+  });
+  return group;
 }
 
 function makeTextSprite(text, color, background) {
