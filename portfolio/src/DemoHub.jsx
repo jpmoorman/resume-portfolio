@@ -131,8 +131,13 @@ export default function DemoHub() {
     }
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xdfe7ef);
-    scene.fog = new THREE.Fog(0xdfe7ef, 14, 38);
+    // Gradient skybox: brighter cyan at top, soft cream at horizon — that
+    // classic N64 "Bob-omb Battlefield" sky. We bake the gradient onto a
+    // canvas texture and apply it as a sphere mapping background.
+    scene.background = makeGradientSky();
+    // Warm horizon fog (sunset-y), much further out so it doesn't muddy
+    // the doors but still gives soft depth.
+    scene.fog = new THREE.Fog(0xf4e6c8, 22, 60);
 
     const camera = new THREE.PerspectiveCamera(56, mount.clientWidth / mount.clientHeight, 0.1, 100);
     camera.position.set(0, 9.5, 13);
@@ -157,18 +162,36 @@ export default function DemoHub() {
     sun.shadow.camera.bottom = -16;
     scene.add(sun);
 
-    const rim = new THREE.DirectionalLight(0xfff1d4, 0.55);
+    const rim = new THREE.DirectionalLight(0xfff1d4, 0.75);
     rim.position.set(-8, 6, -6);
     scene.add(rim);
 
-    // ── Floor ─────────────────────────────────────────────────────────
+    // Subtle cool fill from below to lift shadows (N64 always had this look)
+    const fill = new THREE.DirectionalLight(0x9fc1ff, 0.25);
+    fill.position.set(0, -2, 0);
+    scene.add(fill);
+
+    // ── Floor with patterned tile texture ─────────────────────────────
+    const tileTex = makeTileTexture();
+    tileTex.wrapS = THREE.RepeatWrapping;
+    tileTex.wrapT = THREE.RepeatWrapping;
+    tileTex.repeat.set(3, 3);
     const floor = new THREE.Mesh(
-      new THREE.CircleGeometry(FLOOR_RADIUS, 6),
-      new THREE.MeshStandardMaterial({ color: 0xefe9da, roughness: 0.9 })
+      new THREE.CircleGeometry(FLOOR_RADIUS, 8),
+      new THREE.MeshStandardMaterial({ map: tileTex, roughness: 0.9 })
     );
     floor.rotation.x = -Math.PI / 2;
     floor.receiveShadow = true;
     scene.add(floor);
+    // Outer "grass" ring beyond the hub floor for context
+    const grassRing = new THREE.Mesh(
+      new THREE.RingGeometry(FLOOR_RADIUS, FLOOR_RADIUS + 10, 48),
+      new THREE.MeshStandardMaterial({ color: 0x7aa45a, roughness: 0.95 })
+    );
+    grassRing.rotation.x = -Math.PI / 2;
+    grassRing.position.y = -0.04;
+    grassRing.receiveShadow = true;
+    scene.add(grassRing);
 
     const innerRing = new THREE.Mesh(
       new THREE.RingGeometry(2.2, 2.6, 48),
@@ -200,6 +223,39 @@ export default function DemoHub() {
     scene.add(player);
 
     const facingDir = new THREE.Vector3(0, 0, 1);
+
+    // ── Ambient floating stars (N64 power-star vibe, but generic) ───────
+    const ambientStars = [];
+    for (let i = 0; i < 18; i += 1) {
+      const star3D = new THREE.Mesh(
+        new THREE.OctahedronGeometry(0.16, 0),
+        new THREE.MeshStandardMaterial({
+          color: 0xffe072,
+          emissive: 0xff9c00,
+          emissiveIntensity: 0.6,
+          roughness: 0.4,
+        })
+      );
+      const r = 4.5 + Math.random() * 5;
+      const a = Math.random() * Math.PI * 2;
+      star3D.position.set(Math.cos(a) * r, 3.5 + Math.random() * 2.8, Math.sin(a) * r);
+      star3D.userData = { baseY: star3D.position.y, phase: Math.random() * Math.PI * 2, spin: 0.5 + Math.random() * 1.0 };
+      scene.add(star3D);
+      ambientStars.push(star3D);
+    }
+
+    // ── Footstep dust pool: small puff particles spawned when foot lands
+    const dustPool = [];
+    const spawnDust = (x, z) => {
+      const dust = new THREE.Mesh(
+        new THREE.SphereGeometry(0.12, 8, 6),
+        new THREE.MeshBasicMaterial({ color: 0xefe9da, transparent: true, opacity: 0.75 })
+      );
+      dust.position.set(x, 0.08, z);
+      dust.userData = { life: 0, vy: 0.6 + Math.random() * 0.4 };
+      scene.add(dust);
+      dustPool.push(dust);
+    };
 
     // ── Doors ─────────────────────────────────────────────────────────
     const doors = [];
@@ -452,6 +508,8 @@ export default function DemoHub() {
     const FRICTION = 7;   // deceleration when no input (slide feel)
     const velocity = new THREE.Vector3(0, 0, 0);
     const aiStatusRef = { last: null };
+    const animateStateRef = { walkSinPrev: 0 };
+    let speedRatio = 0;
 
     const tmpVec = new THREE.Vector3();
     const playerPlanar = new THREE.Vector3();
@@ -604,7 +662,7 @@ export default function DemoHub() {
       // regardless of body speed so the legs "start running" before the body
       // catches up — that's the Mario 64 feel. While sliding (no input but
       // still moving), legs animate proportional to remaining speed.
-      const speedRatio = Math.min(1, velocity.length() / MAX_SPEED);
+      speedRatio = Math.min(1, velocity.length() / MAX_SPEED);
       const phaseSpeed = hasInput ? 14 : 14 * speedRatio;
       walkPhase += delta * phaseSpeed;
 
@@ -617,6 +675,39 @@ export default function DemoHub() {
       animatePlayer(playerRig, legsActive, walkPhase, clock.elapsedTime, sliding, speedRatio);
 
       playerPlanar.set(player.position.x, 0, player.position.z);
+
+      // Animate ambient stars: gentle bob + slow spin
+      ambientStars.forEach((s3d) => {
+        s3d.position.y = s3d.userData.baseY + Math.sin(clock.elapsedTime * 0.9 + s3d.userData.phase) * 0.25;
+        s3d.rotation.y += delta * s3d.userData.spin;
+        s3d.rotation.x += delta * s3d.userData.spin * 0.4;
+      });
+
+      // Spawn footstep dust on each footfall when walking
+      const walkSin = Math.sin(walkPhase);
+      const wasNeg = animateStateRef.walkSinPrev < 0;
+      const isPos = walkSin >= 0;
+      if (wasNeg && isPos && speedRatio > 0.35) {
+        spawnDust(player.position.x, player.position.z);
+      }
+      animateStateRef.walkSinPrev = walkSin;
+
+      // Update dust puffs
+      for (let i = dustPool.length - 1; i >= 0; i -= 1) {
+        const d = dustPool[i];
+        d.userData.life += delta;
+        d.position.y += d.userData.vy * delta;
+        d.userData.vy *= 0.96;
+        const t = d.userData.life / 0.6;
+        d.material.opacity = Math.max(0, 0.75 * (1 - t));
+        d.scale.setScalar(1 + t * 1.2);
+        if (t >= 1) {
+          scene.remove(d);
+          d.geometry.dispose();
+          d.material.dispose();
+          dustPool.splice(i, 1);
+        }
+      }
 
       let nearestDoor = null;
       let nearestDist = Infinity;
@@ -926,95 +1017,167 @@ export default function DemoHub() {
 function buildPlayer() {
   const root = new THREE.Group();
 
-  // Torso (red)
+  // ── Chibi proportions: oversized head, stout body, big hands, big shoes
+  // Torso (red shirt) with overall straps + denim bib
+  const shirtMat = new THREE.MeshStandardMaterial({ color: 0xd24a3c, roughness: 0.5 });
+  const denimMat = new THREE.MeshStandardMaterial({ color: 0x1d3a8a, roughness: 0.6 });
+  const buttonMat = new THREE.MeshStandardMaterial({ color: 0xffd000, emissive: 0x553b00 });
+
   const torso = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.26, 0.3, 0.5, 28),
-    new THREE.MeshStandardMaterial({ color: 0xd24a3c, roughness: 0.5 })
+    new THREE.CylinderGeometry(0.3, 0.34, 0.46, 24),
+    shirtMat
   );
   torso.position.y = 0.55;
   torso.castShadow = true;
   root.add(torso);
 
-  // Head
+  // Overall bib (front rectangle of denim covering chest)
+  const bib = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.34, 0.06), denimMat);
+  bib.position.set(0, 0.6, 0.3);
+  bib.castShadow = true;
+  root.add(bib);
+  // Two yellow buttons on the bib
+  const button1 = new THREE.Mesh(new THREE.SphereGeometry(0.04, 10, 8), buttonMat);
+  button1.position.set(-0.13, 0.69, 0.34);
+  const button2 = button1.clone();
+  button2.position.x = 0.13;
+  root.add(button1, button2);
+  // Overall straps (two thin vertical denim boxes over shoulders)
+  const strapGeo = new THREE.BoxGeometry(0.08, 0.34, 0.06);
+  const strapL = new THREE.Mesh(strapGeo, denimMat);
+  strapL.position.set(-0.16, 0.8, 0.3);
+  const strapR = strapL.clone();
+  strapR.position.x = 0.16;
+  root.add(strapL, strapR);
+
+  // Head (bigger — chibi)
   const head = new THREE.Mesh(
-    new THREE.SphereGeometry(0.28, 32, 24),
+    new THREE.SphereGeometry(0.42, 32, 24),
     new THREE.MeshStandardMaterial({ color: 0xffd9b5, roughness: 0.55 })
   );
-  head.position.y = 1.05;
+  head.position.y = 1.18;
   head.castShadow = true;
   root.add(head);
 
-  // Eyes (two tiny white spheres + pupils)
-  const eyeMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
+  // Eyes — bigger whites, dark pupils
+  const eyeWhiteMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
   const pupilMat = new THREE.MeshStandardMaterial({ color: 0x171717 });
-  const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.06, 10, 8), eyeMat);
-  eyeL.position.set(-0.1, 1.07, 0.23);
-  const eyeR = new THREE.Mesh(new THREE.SphereGeometry(0.06, 10, 8), eyeMat);
-  eyeR.position.set(0.1, 1.07, 0.23);
-  const pupilL = new THREE.Mesh(new THREE.SphereGeometry(0.025, 8, 6), pupilMat);
-  pupilL.position.set(-0.1, 1.07, 0.27);
-  const pupilR = new THREE.Mesh(new THREE.SphereGeometry(0.025, 8, 6), pupilMat);
-  pupilR.position.set(0.1, 1.07, 0.27);
+  const eyeWhite = new THREE.SphereGeometry(0.085, 14, 10);
+  const eyeL = new THREE.Mesh(eyeWhite, eyeWhiteMat);
+  eyeL.position.set(-0.13, 1.22, 0.34);
+  const eyeR = new THREE.Mesh(eyeWhite, eyeWhiteMat);
+  eyeR.position.set(0.13, 1.22, 0.34);
+  const pupilL = new THREE.Mesh(new THREE.SphereGeometry(0.04, 10, 8), pupilMat);
+  pupilL.position.set(-0.13, 1.22, 0.41);
+  const pupilR = new THREE.Mesh(new THREE.SphereGeometry(0.04, 10, 8), pupilMat);
+  pupilR.position.set(0.13, 1.22, 0.41);
   root.add(eyeL, eyeR, pupilL, pupilR);
 
-  // Hat (cone)
+  // Eyebrows (two small dark boxes above the eyes)
+  const browGeo = new THREE.BoxGeometry(0.12, 0.025, 0.03);
+  const browMat = new THREE.MeshStandardMaterial({ color: 0x3a2c1f, roughness: 0.7 });
+  const browL = new THREE.Mesh(browGeo, browMat);
+  browL.position.set(-0.13, 1.35, 0.4);
+  browL.rotation.z = -0.1;
+  const browR = browL.clone();
+  browR.position.x = 0.13;
+  browR.rotation.z = 0.1;
+  root.add(browL, browR);
+
+  // Nose (small skin sphere between eyes)
+  const nose = new THREE.Mesh(
+    new THREE.SphereGeometry(0.08, 12, 10),
+    new THREE.MeshStandardMaterial({ color: 0xffc9a0, roughness: 0.55 })
+  );
+  nose.position.set(0, 1.13, 0.42);
+  root.add(nose);
+
+  // Mustache (two small dark blocks under the nose)
+  const stacheGeo = new THREE.BoxGeometry(0.13, 0.05, 0.04);
+  const stacheMat = new THREE.MeshStandardMaterial({ color: 0x3a2c1f, roughness: 0.6 });
+  const stacheL = new THREE.Mesh(stacheGeo, stacheMat);
+  stacheL.position.set(-0.07, 1.05, 0.41);
+  stacheL.rotation.z = 0.1;
+  const stacheR = stacheL.clone();
+  stacheR.position.x = 0.07;
+  stacheR.rotation.z = -0.1;
+  root.add(stacheL, stacheR);
+
+  // Hat (taller cone)
   const hat = new THREE.Mesh(
-    new THREE.ConeGeometry(0.32, 0.42, 18),
+    new THREE.ConeGeometry(0.4, 0.5, 22),
     new THREE.MeshStandardMaterial({ color: 0x245ee8, roughness: 0.55 })
   );
-  hat.position.y = 1.4;
+  hat.position.y = 1.66;
   hat.castShadow = true;
   root.add(hat);
 
   // Hat brim
   const brim = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.34, 0.34, 0.06, 18),
+    new THREE.CylinderGeometry(0.44, 0.44, 0.08, 22),
     new THREE.MeshStandardMaterial({ color: 0x1a3f9c, roughness: 0.6 })
   );
-  brim.position.y = 1.2;
+  brim.position.y = 1.42;
   root.add(brim);
 
-  // Arms (two boxes)
-  const armMat = new THREE.MeshStandardMaterial({ color: 0xd24a3c, roughness: 0.55 });
-  const armGeo = new THREE.BoxGeometry(0.12, 0.42, 0.12);
-  const handMat = new THREE.MeshStandardMaterial({ color: 0xffe1c2, roughness: 0.6 });
-  const handGeo = new THREE.SphereGeometry(0.09, 12, 10);
+  // Cap front emblem: little yellow circle on the hat brim
+  const emblem = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.09, 0.09, 0.02, 18),
+    new THREE.MeshStandardMaterial({ color: 0xffd000, emissive: 0x553b00 })
+  );
+  emblem.position.set(0, 1.51, 0.4);
+  emblem.rotation.x = Math.PI / 2;
+  root.add(emblem);
+
+  // Arms — short red sleeves + WHITE GLOVES
+  const armMat = shirtMat;
+  const armGeo = new THREE.BoxGeometry(0.14, 0.36, 0.14);
+  const gloveMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.55 });
+  const gloveGeo = new THREE.SphereGeometry(0.13, 14, 10);
   const buildArm = (side) => {
     const g = new THREE.Group();
     const upper = new THREE.Mesh(armGeo, armMat);
-    upper.position.y = -0.21;
+    upper.position.y = -0.18;
     upper.castShadow = true;
-    const hand = new THREE.Mesh(handGeo, handMat);
-    hand.position.y = -0.46;
-    hand.castShadow = true;
-    g.add(upper, hand);
-    g.position.set(side * 0.32, 0.78, 0);
+    const glove = new THREE.Mesh(gloveGeo, gloveMat);
+    glove.position.y = -0.42;
+    glove.castShadow = true;
+    g.add(upper, glove);
+    g.position.set(side * 0.36, 0.76, 0);
     return g;
   };
   const armL = buildArm(-1);
   const armR = buildArm(1);
   root.add(armL, armR);
 
-  // Legs (jeans) with little shoes at the ends
-  const legMat = new THREE.MeshStandardMaterial({ color: 0x1d3a8a, roughness: 0.6 });
-  const legGeo = new THREE.BoxGeometry(0.14, 0.36, 0.14);
-  const shoeMat = new THREE.MeshStandardMaterial({ color: 0x171717, roughness: 0.7 });
-  const shoeGeo = new THREE.BoxGeometry(0.18, 0.1, 0.26);
+  // Legs — denim, with BIG shoes
+  const legGeo = new THREE.BoxGeometry(0.16, 0.32, 0.16);
+  const shoeMat = new THREE.MeshStandardMaterial({ color: 0x5a2a1a, roughness: 0.7 });
+  const shoeGeo = new THREE.BoxGeometry(0.24, 0.16, 0.36);
   const buildLeg = (side) => {
     const g = new THREE.Group();
-    const seg = new THREE.Mesh(legGeo, legMat);
-    seg.position.y = -0.18;
+    const seg = new THREE.Mesh(legGeo, denimMat);
+    seg.position.y = -0.16;
     seg.castShadow = true;
     const shoe = new THREE.Mesh(shoeGeo, shoeMat);
-    shoe.position.set(0, -0.4, 0.04);
+    shoe.position.set(0, -0.4, 0.08);
     shoe.castShadow = true;
     g.add(seg, shoe);
-    g.position.set(side * 0.13, 0.32, 0);
+    g.position.set(side * 0.14, 0.32, 0);
     return g;
   };
   const legL = buildLeg(-1);
   const legR = buildLeg(1);
   root.add(legL, legR);
+
+  // Shadow blob (soft dark disc under the player to anchor it)
+  const blob = new THREE.Mesh(
+    new THREE.CircleGeometry(0.35, 24),
+    new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.22 })
+  );
+  blob.rotation.x = -Math.PI / 2;
+  blob.position.y = 0.011;
+  root.add(blob);
 
   return { root, torso, head, hat, armL, armR, legL, legR };
 }
@@ -1439,4 +1602,54 @@ function stepsToObjectByDescription(lc, doors) {
     }
   }
   return [];
+}
+
+function makeGradientSky() {
+  const canvas = document.createElement("canvas");
+  canvas.width = 2;
+  canvas.height = 512;
+  const ctx = canvas.getContext("2d");
+  const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+  grad.addColorStop(0, "#5fa6e8");   // top sky blue
+  grad.addColorStop(0.55, "#b7d1ee"); // mid
+  grad.addColorStop(0.85, "#f4dec1"); // horizon warm
+  grad.addColorStop(1, "#efe2c4");
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
+function makeTileTexture() {
+  const canvas = document.createElement("canvas");
+  canvas.width = 256;
+  canvas.height = 256;
+  const ctx = canvas.getContext("2d");
+  // Base
+  ctx.fillStyle = "#efe9da";
+  ctx.fillRect(0, 0, 256, 256);
+  // Diagonal cross-hatch tile pattern with subtle warm accent
+  ctx.strokeStyle = "#d8d0bc";
+  ctx.lineWidth = 2;
+  for (let i = -256; i < 512; i += 32) {
+    ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i + 256, 256); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(i, 256); ctx.lineTo(i + 256, 0); ctx.stroke();
+  }
+  // Diamond highlights at intersections
+  ctx.fillStyle = "#c9bf9f";
+  for (let y = 0; y <= 256; y += 32) {
+    for (let x = 0; x <= 256; x += 32) {
+      ctx.beginPath();
+      ctx.moveTo(x, y - 3);
+      ctx.lineTo(x + 3, y);
+      ctx.lineTo(x, y + 3);
+      ctx.lineTo(x - 3, y);
+      ctx.closePath();
+      ctx.fill();
+    }
+  }
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
 }
