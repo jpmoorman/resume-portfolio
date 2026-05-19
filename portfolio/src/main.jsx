@@ -371,13 +371,16 @@ function Resume({ resolvedToolIcons }) {
       <div className="resume-preview" aria-label="Print-style resume preview">
         <header>
           <h3>{profile.name}</h3>
-          <p>{profile.location} | {profile.phone} | {profile.email} | Portfolio: jimmyjames.dev | GitHub: github.com/jpmoorman/resume-portfolio</p>
+          <p>{profile.location} | {profile.phone} | {profile.email} | Portfolio: jimmyjames.dev</p>
         </header>
 
         <section>
           <h4>Professional Summary</h4>
           <p>
             AI workflow engineer and internal tools builder with experience designing, shipping, and scaling AI-enabled workflows across CRM-adjacent processes, operational data, document systems, and internal web applications. Hands-on with React, Python, SQL, APIs, LLM-assisted development, prompt frameworks, and automation patterns. Strong record of moving ambiguous business needs from prototype to production, measuring adoption and impact, and creating reusable patterns that reduce manual work across distributed teams.
+          </p>
+          <p>
+            Career foundation spans engineering, product/program management, and operations technology, giving me the context to translate ambiguous business workflows into production internal tools.
           </p>
         </section>
 
