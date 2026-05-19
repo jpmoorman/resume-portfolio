@@ -524,7 +524,8 @@ function OrbitDemoInteractive() {
             ))}
           </select>
         </div>
-        <div className="example-serials" aria-label="Example serial numbers">
+        <div className="example-serials" aria-label="Sample serial numbers">
+          <span>Sample serial numbers</span>
           {orbitExamples.map((example) => (
             <button
               key={example.serial}
@@ -555,30 +556,62 @@ function OrbitDemoInteractive() {
         <article className="document-preview">
           <h3>Approved viewer preview</h3>
           <span className="doc-status">{result.matchedDocument.status}</span>
-          <strong>{result.matchedDocument.documentId}</strong>
-          <p>{result.matchedDocument.title}</p>
-          <dl>
-            <div>
-              <dt>Serial</dt>
-              <dd>{result.serial}</dd>
-            </div>
-            <div>
-              <dt>Work area</dt>
-              <dd>{result.workArea}</dd>
-            </div>
-            <div>
-              <dt>Family</dt>
-              <dd>{result.deviceProfile.family}</dd>
-            </div>
-            <div>
-              <dt>Match</dt>
-              <dd>{result.matchedDocument.confidence}</dd>
-            </div>
-          </dl>
-          <div className="option-code-row">
-            {result.deviceProfile.optionCodes.map((code) => (
-              <span key={code}>{code}</span>
-            ))}
+
+          <div className="fake-document" aria-label="Fake approved document preview">
+            <header>
+              <div>
+                <small>Controlled work instruction</small>
+                <strong>{result.matchedDocument.documentId}</strong>
+              </div>
+              <span>Released</span>
+            </header>
+
+            <section className="fake-document-title">
+              <h4>{result.matchedDocument.title}</h4>
+              <p>Sample document generated for portfolio demonstration only.</p>
+            </section>
+
+            <dl>
+              <div>
+                <dt>Serial</dt>
+                <dd>{result.serial}</dd>
+              </div>
+              <div>
+                <dt>Work area</dt>
+                <dd>{result.workArea}</dd>
+              </div>
+              <div>
+                <dt>Product family</dt>
+                <dd>{result.deviceProfile.family}</dd>
+              </div>
+              <div>
+                <dt>Match confidence</dt>
+                <dd>{result.matchedDocument.confidence}</dd>
+              </div>
+            </dl>
+
+            <section className="fake-document-body">
+              <h4>Station instructions</h4>
+              <ol>
+                <li>Confirm the scanned serial number matches the active production traveler.</li>
+                <li>Verify the option-code set matches the work area before starting the operation.</li>
+                <li>Complete the required checks and record any exception in the workflow system.</li>
+              </ol>
+            </section>
+
+            <section className="fake-document-body">
+              <h4>Matched option codes</h4>
+              <div className="option-code-row">
+                {result.deviceProfile.optionCodes.map((code) => (
+                  <span key={code}>{code}</span>
+                ))}
+              </div>
+            </section>
+
+            <footer>
+              <span>Source: approved document library</span>
+              <span>Access: read-only viewer</span>
+            </footer>
           </div>
         </article>
       </div>

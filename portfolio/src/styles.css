@@ -514,6 +514,14 @@ h4 {
   gap: 8px;
 }
 
+.example-serials > span {
+  flex: 1 0 100%;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
 .example-serials button {
   min-height: 46px;
   padding: 9px 11px;
@@ -612,35 +620,106 @@ h4 {
   font-weight: 850;
 }
 
-.document-preview strong {
+.fake-document strong {
   font-size: clamp(1.8rem, 4vw, 3rem);
   line-height: 1;
 }
 
-.document-preview dl {
+.fake-document {
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+  border: 1px solid #cfc8b8;
+  border-radius: 8px;
+  background: #fffdf7;
+  color: #24211b;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.75);
+}
+
+.fake-document header,
+.fake-document footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: center;
+}
+
+.fake-document header {
+  padding-bottom: 14px;
+  border-bottom: 2px solid #24211b;
+}
+
+.fake-document header small {
+  display: block;
+}
+
+.fake-document header > span {
+  padding: 7px 9px;
+  border: 1px solid #a9c9bf;
+  border-radius: 8px;
+  background: #e8f3f1;
+  color: var(--green);
+  font-weight: 850;
+}
+
+.fake-document-title {
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.fake-document-title h4,
+.fake-document-body h4 {
+  color: #24436f;
+}
+
+.fake-document-title p,
+.fake-document-body li,
+.fake-document footer {
+  color: #4e4b45;
+}
+
+.fake-document dl {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
-  margin: 18px 0;
+  margin: 0;
 }
 
-.document-preview dl div {
+.fake-document dl div {
   padding: 12px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: #fbfaf6;
 }
 
-.document-preview dt {
+.fake-document dt {
   color: var(--muted);
   font-size: 0.75rem;
   font-weight: 850;
   text-transform: uppercase;
 }
 
-.document-preview dd {
+.fake-document dd {
   margin: 4px 0 0;
   font-weight: 800;
+}
+
+.fake-document-body {
+  padding-top: 2px;
+}
+
+.fake-document-body ol {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding-left: 20px;
+}
+
+.fake-document footer {
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  font-size: 0.86rem;
+  font-weight: 750;
 }
 
 .option-code-row {
