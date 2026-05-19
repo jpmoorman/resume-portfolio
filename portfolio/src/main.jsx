@@ -18,6 +18,7 @@ import projects from "./data/projects.json";
 import "./styles.css";
 
 const categories = ["All", "AI", "Manufacturing", "Quality", "Automation", "Data", "Web Apps"];
+const ICON_LAB_HASH = "#icon-lab-7f3k";
 
 const categoryIcons = {
   AI: Sparkles,
@@ -73,12 +74,83 @@ const toolIconMap = {
   Windchill: { src: favicon("ptc.com"), alt: "PTC logo", className: "windchill" },
 };
 
+const iconLabTools = [
+  "OpenAI Codex",
+  "Claude Code",
+  "OpenCode",
+  "Windsurf",
+  "GitHub Copilot",
+  "Prompt frameworks",
+  "Agent-style workflows",
+  "Custom AI/development skills",
+  "React",
+  "Python",
+  "APIs",
+  "Internal web tools",
+  "Reusable UI patterns",
+  "Workflow surfaces",
+  "SQL",
+  "Dataverse",
+  "Cosmos DB",
+  "Microsoft Fabric",
+  "Power BI",
+  "Dashboards",
+  "Operational analytics",
+  "Power Automate",
+  "Approval workflows",
+  "Document review support",
+  "Reporting automation",
+  "Workflow tracking",
+  "Salesforce-adjacent workflows",
+  "Warehouse systems",
+  "Manufacturing systems",
+  "Document control",
+  "MediaWiki",
+  "Windchill",
+];
+
+const ICON_OVERRIDE_KEY = "portfolio_tool_icon_overrides_v1";
+
 function App() {
   const [activeCategory, setActiveCategory] = useState("All");
+  const [hash, setHash] = useState(window.location.hash || "");
+  const [iconOverrides, setIconOverrides] = useState(() => {
+    try {
+      return JSON.parse(window.localStorage.getItem(ICON_OVERRIDE_KEY) || "{}");
+    } catch {
+      return {};
+    }
+  });
+
+  React.useEffect(() => {
+    const onHash = () => setHash(window.location.hash || "");
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
+  }, []);
+
   const filteredProjects = useMemo(() => {
     if (activeCategory === "All") return projects;
     return projects.filter((project) => project.category === activeCategory);
   }, [activeCategory]);
+
+  const resolvedToolIcons = useMemo(() => {
+    const next = { ...toolIconMap };
+    for (const [name, value] of Object.entries(iconOverrides)) {
+      if (!value) continue;
+      const existing = next[name] || { alt: `${name} icon`, className: "custom" };
+      next[name] = { ...existing, src: value };
+    }
+    return next;
+  }, [iconOverrides]);
+
+  if (hash === ICON_LAB_HASH) {
+    return (
+      <IconLab
+        overrides={iconOverrides}
+        setOverrides={setIconOverrides}
+      />
+    );
+  }
 
   return (
     <>
@@ -89,9 +161,10 @@ function App() {
           activeCategory={activeCategory}
           filteredProjects={filteredProjects}
           setActiveCategory={setActiveCategory}
+          resolvedToolIcons={resolvedToolIcons}
         />
-        <Resume />
-        <Skills />
+        <Resume resolvedToolIcons={resolvedToolIcons} />
+        <Skills resolvedToolIcons={resolvedToolIcons} />
         <Contact />
       </main>
     </>
@@ -163,7 +236,7 @@ function Home() {
   );
 }
 
-function Projects({ activeCategory, filteredProjects, setActiveCategory }) {
+function Projects({ activeCategory, filteredProjects, setActiveCategory, resolvedToolIcons }) {
   return (
     <section id="projects" className="section projects-section">
       <div className="section-heading">
@@ -191,14 +264,14 @@ function Projects({ activeCategory, filteredProjects, setActiveCategory }) {
 
       <div className="project-grid">
         {filteredProjects.map((project) => (
-          <ProjectCard project={project} key={project.id} />
+          <ProjectCard project={project} key={project.id} resolvedToolIcons={resolvedToolIcons} />
         ))}
       </div>
     </section>
   );
 }
 
-function ProjectCard({ project }) {
+function ProjectCard({ project, resolvedToolIcons }) {
   const Icon = categoryIcons[project.category] ?? BriefcaseBusiness;
 
   return (
@@ -223,7 +296,7 @@ function ProjectCard({ project }) {
       </div>
       <div className="tool-list" aria-label={`Tools used for ${project.title}`}>
         {project.tools.map((tool) => (
-          <ToolBadge key={tool} text={tool} />
+          <ToolBadge key={tool} text={tool} resolvedToolIcons={resolvedToolIcons} />
         ))}
       </div>
       <div className="impact-list">
@@ -238,7 +311,7 @@ function ProjectCard({ project }) {
   );
 }
 
-function Resume() {
+function Resume({ resolvedToolIcons }) {
   return (
     <section id="resume" className="section resume-section">
       <div className="resume-copy">
@@ -302,11 +375,11 @@ function Resume() {
           <h4>Core Stack</h4>
           <p>React | Python | SQL | APIs | Microsoft Fabric | Dataverse | Power Platform | Azure | Cosmos DB | Workflow Automation</p>
           <div className="resume-tool-icons" aria-label="Primary AI tool stack">
-            <ToolBadge text="OpenAI Codex" />
-            <ToolBadge text="Claude Code" />
-            <ToolBadge text="Windsurf" />
-            <ToolBadge text="OpenCode" />
-            <ToolBadge text="Microsoft Fabric" />
+            <ToolBadge text="OpenAI Codex" resolvedToolIcons={resolvedToolIcons} />
+            <ToolBadge text="Claude Code" resolvedToolIcons={resolvedToolIcons} />
+            <ToolBadge text="Windsurf" resolvedToolIcons={resolvedToolIcons} />
+            <ToolBadge text="OpenCode" resolvedToolIcons={resolvedToolIcons} />
+            <ToolBadge text="Microsoft Fabric" resolvedToolIcons={resolvedToolIcons} />
           </div>
         </section>
 
@@ -324,7 +397,7 @@ function Resume() {
   );
 }
 
-function Skills() {
+function Skills({ resolvedToolIcons }) {
   return (
     <section id="skills" className="section skills-section">
       <div className="section-heading">
@@ -340,7 +413,7 @@ function Skills() {
             </h3>
             <div>
               {skills.map((skill) => (
-                <ToolBadge key={skill} text={skill} />
+                <ToolBadge key={skill} text={skill} resolvedToolIcons={resolvedToolIcons} />
               ))}
             </div>
           </article>
@@ -350,8 +423,9 @@ function Skills() {
   );
 }
 
-function ToolBadge({ text }) {
-  const toolIcon = toolIconMap[text];
+function ToolBadge({ text, resolvedToolIcons }) {
+  const icons = resolvedToolIcons || toolIconMap;
+  const toolIcon = icons[text];
   if (!toolIcon) {
     return <span>{text}</span>;
   }
@@ -363,6 +437,51 @@ function ToolBadge({ text }) {
       </i>
       {text}
     </span>
+  );
+}
+
+function IconLab({ overrides, setOverrides }) {
+  const [draft, setDraft] = useState(() => ({ ...overrides }));
+
+  const setValue = (name, value) => setDraft((prev) => ({ ...prev, [name]: value.trim() }));
+
+  const save = () => {
+    window.localStorage.setItem(ICON_OVERRIDE_KEY, JSON.stringify(draft));
+    setOverrides(draft);
+    alert("Icon overrides saved.");
+  };
+
+  const clearAll = () => {
+    window.localStorage.removeItem(ICON_OVERRIDE_KEY);
+    setDraft({});
+    setOverrides({});
+  };
+
+  return (
+    <main className="icon-lab">
+      <section className="icon-lab-panel">
+        <h1>Icon Lab</h1>
+        <p>Set favicon URLs per tool. Use full icon URL or favicon endpoint URL. Secret route: <code>{ICON_LAB_HASH}</code></p>
+        <div className="icon-lab-actions">
+          <button className="button primary" type="button" onClick={save}>Save</button>
+          <button className="button secondary" type="button" onClick={clearAll}>Clear</button>
+          <a className="button secondary" href="#home">Back to site</a>
+        </div>
+        <div className="icon-lab-grid">
+          {iconLabTools.map((tool) => (
+            <label key={tool} className="icon-lab-row">
+              <span>{tool}</span>
+              <input
+                type="text"
+                value={draft[tool] || ""}
+                onChange={(event) => setValue(tool, event.target.value)}
+                placeholder={toolIconMap[tool]?.src || "https://.../favicon.ico"}
+              />
+            </label>
+          ))}
+        </div>
+      </section>
+    </main>
   );
 }
 
