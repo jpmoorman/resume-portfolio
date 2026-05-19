@@ -883,26 +883,7 @@ export default function DemoHub() {
         </details>
       </div>
 
-            <details className="demo-hub-skip">
-        <summary>Prefer a list? Skip the game and browse demos directly.</summary>
-        <div className="demo-card-grid demo-hub-cards">
-          {projects.map((p) => {
-            const doorCfg = DOOR_CONFIGS.find((d) => d.id === p.id);
-            const href = doorCfg?.href || `/demos/${p.id}`;
-            return (
-              <a key={p.id} className="demo-card demo-hub-card" href={href}>
-                <span className="category-pill">{p.category}</span>
-                <h3>{p.title}</h3>
-                <p>{p.shortDescription}</p>
-                <span className="project-demo-link">Open demo &rarr;</span>
-              </a>
-            );
-          })}
-        </div>
-      </details>
-
-
-    </div>
+</div>
   );
 }
 
