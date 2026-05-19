@@ -356,16 +356,39 @@ export default function DemoHub() {
 
     // ── Controls ──────────────────────────────────────────────────────
     const keys = new Set();
+    // True when the user is currently typing into a form field anywhere on
+    // the page. While typing, the game must NOT steal WASD/space/arrows.
+    const isTextFieldTarget = (t) => {
+      if (!t) return false;
+      const tag = t.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return true;
+      if (t.isContentEditable) return true;
+      return false;
+    };
     const onKeyDown = (e) => {
+      if (isTextFieldTarget(e.target)) return;
       const k = e.key.toLowerCase();
       if (["w", "a", "s", "d", "arrowup", "arrowdown", "arrowleft", "arrowright", " "].includes(k)) {
         e.preventDefault();
       }
       keys.add(k);
     };
-    const onKeyUp = (e) => keys.delete(e.key.toLowerCase());
+    const onKeyUp = (e) => {
+      if (isTextFieldTarget(e.target)) {
+        // Still clear any held key so the player doesn\'t keep walking if a
+        // direction key was released while focus moved to the input.
+        keys.delete(e.key.toLowerCase());
+        return;
+      }
+      keys.delete(e.key.toLowerCase());
+    };
     window.addEventListener("keydown", onKeyDown, { passive: false });
     window.addEventListener("keyup", onKeyUp);
+
+    const onFocusIn = (e) => {
+      if (isTextFieldTarget(e.target)) keys.clear();
+    };
+    window.addEventListener("focusin", onFocusIn);
 
     const setMove = (key, enabled) => { if (enabled) keys.add(key); else keys.delete(key); };
     mount._demoHubSetMove = setMove;
@@ -686,6 +709,7 @@ export default function DemoHub() {
       cancelAnimationFrame(mount._demoHubFrame);
       window.removeEventListener("keydown", onKeyDown);
       window.removeEventListener("keyup", onKeyUp);
+      window.removeEventListener("focusin", onFocusIn);
       window.removeEventListener("resize", resize);
       scene.traverse((obj) => {
         if (obj.geometry) obj.geometry.dispose?.();
@@ -819,24 +843,6 @@ export default function DemoHub() {
         <div ref={faderRef} className={`demo-hub-fader${fadeActive ? " active" : ""}`} aria-hidden="true" />
       </div>
 
-      <details className="demo-hub-skip">
-        <summary>Prefer a list? Skip the game and browse demos directly.</summary>
-        <div className="demo-card-grid demo-hub-cards">
-          {projects.map((p) => {
-            const doorCfg = DOOR_CONFIGS.find((d) => d.id === p.id);
-            const href = doorCfg?.href || `/demos/${p.id}`;
-            return (
-              <a key={p.id} className="demo-card demo-hub-card" href={href}>
-                <span className="category-pill">{p.category}</span>
-                <h3>{p.title}</h3>
-                <p>{p.shortDescription}</p>
-                <span className="project-demo-link">Open demo &rarr;</span>
-              </a>
-            );
-          })}
-        </div>
-      </details>
-
       <div className="demo-hub-chat" role="region" aria-label="Plain language command for sprite">
         <form onSubmit={submitCommand}>
           <label htmlFor="demo-hub-chat-input">
@@ -876,6 +882,26 @@ export default function DemoHub() {
           </ul>
         </details>
       </div>
+
+            <details className="demo-hub-skip">
+        <summary>Prefer a list? Skip the game and browse demos directly.</summary>
+        <div className="demo-card-grid demo-hub-cards">
+          {projects.map((p) => {
+            const doorCfg = DOOR_CONFIGS.find((d) => d.id === p.id);
+            const href = doorCfg?.href || `/demos/${p.id}`;
+            return (
+              <a key={p.id} className="demo-card demo-hub-card" href={href}>
+                <span className="category-pill">{p.category}</span>
+                <h3>{p.title}</h3>
+                <p>{p.shortDescription}</p>
+                <span className="project-demo-link">Open demo &rarr;</span>
+              </a>
+            );
+          })}
+        </div>
+      </details>
+
+
     </div>
   );
 }
