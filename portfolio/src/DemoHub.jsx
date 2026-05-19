@@ -590,6 +590,23 @@ export default function DemoHub() {
         } else if (action.type === "wait") {
           state.elapsed = (state.elapsed || 0) + delta;
           if (state.elapsed >= (action.seconds || 0.5)) done = true;
+        } else if (action.type === "stayOn") {
+          // Walk to target then continuously micro-correct toward center
+          // while accumulating "in-zone" time. Only counts time while
+          // actually within the holdRadius — overshoot is auto-corrected.
+          const dx = action.x - player.position.x;
+          const dz = action.z - player.position.z;
+          const dist = Math.sqrt(dx * dx + dz * dz);
+          const holdRadius = action.holdRadius || 0.5;
+          if (dist > 0.18) {
+            // Need to move closer
+            inputDir.set(dx / dist, 0, dz / dist);
+            hasInput = true;
+          }
+          if (dist <= holdRadius) {
+            state.elapsed = (state.elapsed || 0) + delta;
+          }
+          if ((state.elapsed || 0) >= (action.seconds || 1.5)) done = true;
         } else if (action.type === "enterDoor") {
           const door = doors.find((d) => d.id === action.doorId);
           if (!door) { done = true; }
@@ -1602,8 +1619,14 @@ function stepsToOpenDoor(door) {
     steps.push({ type: "goto", x: plate.position.x, z: plate.position.z, radius: 0.5, label: `Step on the ${door.config.title} plate` });
   } else if (t.type === "charge") {
     const pad = door.taskObjects[0];
-    steps.push({ type: "goto", x: pad.position.x, z: pad.position.z, radius: 0.55, label: "Walk onto the charge pad" });
-    steps.push({ type: "wait", seconds: (door.config.task.seconds || 1.4) + 0.3, label: "Hold position to charge" });
+    steps.push({
+      type: "stayOn",
+      x: pad.position.x,
+      z: pad.position.z,
+      holdRadius: 0.7,
+      seconds: (door.config.task.seconds || 1.4) + 0.4,
+      label: "Hold position to charge the AI core",
+    });
   } else if (t.type === "sequence") {
     const order = door.config.task.order;
     order.forEach((k, i) => {
