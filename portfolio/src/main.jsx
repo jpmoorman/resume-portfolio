@@ -232,13 +232,13 @@ function App() {
       <Header />
       <main>
         <Home />
+        <DemosOverview />
         <Projects
           activeCategory={activeCategory}
           filteredProjects={filteredProjects}
           setActiveCategory={setActiveCategory}
           resolvedToolIcons={resolvedToolIcons}
         />
-        <DemosOverview />
         <Resume resolvedToolIcons={resolvedToolIcons} />
         <Skills resolvedToolIcons={resolvedToolIcons} />
         <Contact />
