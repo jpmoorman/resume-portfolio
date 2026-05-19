@@ -7,9 +7,12 @@ import {
   Database,
   Download,
   Factory,
+  FileText,
   Filter,
   Mail,
   Phone,
+  ScanLine,
+  Server,
   Sparkles,
   Workflow,
 } from "lucide-react";
@@ -203,6 +206,7 @@ function App() {
           setActiveCategory={setActiveCategory}
           resolvedToolIcons={resolvedToolIcons}
         />
+        <ProjectDemos />
         <Resume resolvedToolIcons={resolvedToolIcons} />
         <Skills resolvedToolIcons={resolvedToolIcons} />
         <Contact />
@@ -224,6 +228,7 @@ function Header() {
       <nav className="nav-links" aria-label="Primary navigation">
         <a href="#home">Home</a>
         <a href="#projects">Projects</a>
+        <a href="#demos">Demos</a>
         <a href="#resume">Resume</a>
         <a href="#skills">Skills</a>
         <a href="#contact">Contact</a>
@@ -347,6 +352,184 @@ function ProjectCard({ project, resolvedToolIcons }) {
           ))}
         </ul>
       </div>
+      {project.id === "orbit-document-viewer" && (
+        <a className="project-demo-link" href="#demos">
+          Open simplified system demo
+          <ArrowUpRight size={16} aria-hidden="true" />
+        </a>
+      )}
+    </article>
+  );
+}
+
+const orbitExamples = [
+  {
+    serial: "ASM-20491",
+    area: "Assembly",
+    family: "Receiver-in-canal",
+    product: "Custom demo hearing aid",
+    optionCodes: ["ASM", "RIC", "WIRELESS"],
+    document: "WI-ASM-1042",
+    title: "Assembly work instruction",
+    confidence: 96,
+    status: "Approved for production",
+  },
+  {
+    serial: "WIRE-11807",
+    area: "Wiring",
+    family: "Behind-the-ear",
+    product: "Custom demo hearing aid",
+    optionCodes: ["WIRE", "BTE", "RECHARGE"],
+    document: "WI-WIR-2208",
+    title: "Wiring and solder verification",
+    confidence: 93,
+    status: "Approved for production",
+  },
+  {
+    serial: "QA-77210",
+    area: "Quality Review",
+    family: "In-the-ear",
+    product: "Custom demo hearing aid",
+    optionCodes: ["QA", "ITE", "FINAL"],
+    document: "QMS-CHK-7314",
+    title: "Final quality review checklist",
+    confidence: 98,
+    status: "Controlled source document",
+  },
+];
+
+function ProjectDemos() {
+  const [serial, setSerial] = useState(orbitExamples[0].serial);
+  const [workArea, setWorkArea] = useState(orbitExamples[0].area);
+
+  const normalizedSerial = serial.trim().toUpperCase();
+  const matchedExample =
+    orbitExamples.find((example) => example.serial === normalizedSerial && example.area === workArea) ||
+    orbitExamples.find((example) => example.area === workArea) ||
+    orbitExamples.find((example) => example.serial === normalizedSerial) ||
+    orbitExamples[0];
+
+  const result = {
+    serial: normalizedSerial || "PENDING-SCAN",
+    workArea,
+    deviceProfile: {
+      product: matchedExample.product,
+      family: matchedExample.family,
+      optionCodes: matchedExample.optionCodes,
+    },
+    matchedDocument: {
+      documentId: matchedExample.document,
+      title: matchedExample.title,
+      status: matchedExample.status,
+      confidence: `${matchedExample.confidence}%`,
+    },
+  };
+
+  return (
+    <section id="demos" className="section demo-section">
+      <div className="section-heading">
+        <p className="eyebrow">Interactive demos</p>
+        <h2>Orbit system flow, simplified.</h2>
+        <p>
+          A public-safe walkthrough of the pattern: scan a serial number, resolve the product context,
+          match it to controlled documentation, then open the approved viewer.
+        </p>
+      </div>
+
+      <div className="orbit-demo" aria-label="Simplified Orbit system demo">
+        <div className="orbit-controls">
+          <div>
+            <label htmlFor="orbit-serial">Serial number</label>
+            <input
+              id="orbit-serial"
+              value={serial}
+              onChange={(event) => setSerial(event.target.value)}
+              placeholder="Scan or type a serial"
+            />
+          </div>
+          <div>
+            <label htmlFor="orbit-area">Work area</label>
+            <select
+              id="orbit-area"
+              value={workArea}
+              onChange={(event) => setWorkArea(event.target.value)}
+            >
+              {["Assembly", "Wiring", "Quality Review"].map((area) => (
+                <option key={area} value={area}>{area}</option>
+              ))}
+            </select>
+          </div>
+          <div className="example-serials" aria-label="Example serial numbers">
+            {orbitExamples.map((example) => (
+              <button
+                key={example.serial}
+                type="button"
+                onClick={() => {
+                  setSerial(example.serial);
+                  setWorkArea(example.area);
+                }}
+              >
+                {example.serial}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="orbit-flow" aria-label="System connection diagram">
+          <FlowNode icon={ScanLine} title="Web / scanner" detail="Operator enters or scans the serial at a station." />
+          <FlowNode icon={Server} title="API layer" detail="Normalizes the request and asks for product context." />
+          <FlowNode icon={Database} title="Serial Doc match" detail="Compares family, area, and option codes to controlled rules." />
+          <FlowNode icon={FileText} title="Document viewer" detail="Returns the approved source document for the station." />
+        </div>
+
+        <div className="orbit-panels">
+          <article>
+            <h3>API response</h3>
+            <pre>{JSON.stringify(result, null, 2)}</pre>
+          </article>
+          <article className="document-preview">
+            <h3>Approved viewer preview</h3>
+            <span className="doc-status">{result.matchedDocument.status}</span>
+            <strong>{result.matchedDocument.documentId}</strong>
+            <p>{result.matchedDocument.title}</p>
+            <dl>
+              <div>
+                <dt>Serial</dt>
+                <dd>{result.serial}</dd>
+              </div>
+              <div>
+                <dt>Work area</dt>
+                <dd>{result.workArea}</dd>
+              </div>
+              <div>
+                <dt>Family</dt>
+                <dd>{result.deviceProfile.family}</dd>
+              </div>
+              <div>
+                <dt>Match</dt>
+                <dd>{result.matchedDocument.confidence}</dd>
+              </div>
+            </dl>
+            <div className="option-code-row">
+              {result.deviceProfile.optionCodes.map((code) => (
+                <span key={code}>{code}</span>
+              ))}
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function FlowNode({ icon: Icon, title, detail }) {
+  return (
+    <article className="flow-node">
+      <span>
+        <Icon size={20} aria-hidden="true" />
+      </span>
+      <h3>{title}</h3>
+      <p>{detail}</p>
     </article>
   );
 }
