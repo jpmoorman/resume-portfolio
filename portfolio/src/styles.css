@@ -567,6 +567,135 @@ h4 {
   background: var(--blue);
 }
 
+.demo-hub-wrapper {
+  display: grid;
+  gap: 22px;
+}
+
+.demo-hub-task strong {
+  font-size: 0.95rem;
+  line-height: 1.3;
+}
+
+.demo-hub-stat strong {
+  font-size: 1.05rem;
+}
+
+.demo-hub-reset {
+  position: absolute;
+  left: 16px;
+  bottom: 16px;
+  padding: 8px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 6px;
+  background: rgba(17, 17, 17, 0.7);
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+  font-size: 0.82rem;
+  backdrop-filter: blur(10px);
+}
+
+.demo-hub-reset:hover {
+  background: rgba(36, 94, 232, 0.8);
+}
+
+.demo-hub-legend {
+  position: absolute;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 14px;
+  padding: 8px 14px;
+  border-radius: 6px;
+  background: rgba(17, 17, 17, 0.55);
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 600;
+  backdrop-filter: blur(8px);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.demo-hub-legend span + span::before {
+  content: "\00b7";
+  margin-right: 14px;
+  opacity: 0.6;
+}
+
+.demo-hub-skip {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  padding: 14px 18px;
+}
+
+.demo-hub-skip > summary {
+  cursor: pointer;
+  font-weight: 800;
+  color: var(--blue);
+  list-style: none;
+}
+
+.demo-hub-skip > summary::-webkit-details-marker {
+  display: none;
+}
+
+.demo-hub-skip > summary::before {
+  content: "\25b8 ";
+  margin-right: 4px;
+  display: inline-block;
+  transition: transform 0.15s ease;
+}
+
+.demo-hub-skip[open] > summary::before {
+  transform: rotate(90deg);
+}
+
+.demo-hub-cards {
+  margin-top: 16px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.demo-hub-card {
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.demo-hub-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--blue);
+}
+
+.demo-hub-card h3 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.demo-hub-card .project-demo-link {
+  color: var(--blue);
+  font-weight: 800;
+}
+
+@media (max-width: 960px) {
+  .demo-hub-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .demo-hub-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .demo-hub-legend {
+    display: none;
+  }
+}
+
 .orbit-demo {
   display: grid;
   gap: 18px;

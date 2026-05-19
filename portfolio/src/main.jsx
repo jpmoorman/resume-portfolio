@@ -339,7 +339,7 @@ function ProjectCard({ project, resolvedToolIcons }) {
   const Icon = categoryIcons[project.category] ?? BriefcaseBusiness;
 
   return (
-    <article className="project-card">
+    <article className="project-card" id={`project-${project.id}`}>
       <div className="project-topline">
         <span className="category-pill">
           <Icon size={16} aria-hidden="true" />
@@ -422,10 +422,11 @@ function DemosOverview() {
     <section id="demos" className="section demo-section">
       <div className="section-heading">
         <p className="eyebrow">Interactive demos</p>
-        <h2>Demo doors open after you solve the room.</h2>
+        <h2>Six doors. Six demos. Each opens after a quick task.</h2>
         <p>
-          Move through the hub, complete the task for a door, and walk through it to open the
-          matching demo page. Returning to the portfolio drops you back at the center.
+          Move with W A S D or arrow keys. Walk up to a door, complete the small task in front of
+          it, then step through to enter that demo. Returning to the hub always drops you back at
+          the center. Prefer a plain list? Expand the panel below the hub.
         </p>
       </div>
 
