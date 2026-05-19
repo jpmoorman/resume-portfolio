@@ -281,45 +281,48 @@ export default function DemoHub() {
       group.lookAt(0, 0, 0);
       group.rotation.y += Math.PI;
 
-      // Doorway: instead of a single solid box, build a frame with an actual
-      // opening so when the leaves swing aside you see through to a dark
-      // passage behind. Frame is made of two side jambs + a top lintel.
+      // Doorway with proper door proportions: ~2.0w x 3.2t opening
       const frameMat = new THREE.MeshStandardMaterial({ color: 0x3a2f23, roughness: 0.65 });
-      const leftJamb = new THREE.Mesh(new THREE.BoxGeometry(0.34, 3.0, 0.34), frameMat);
-      leftJamb.position.set(-1.08, 1.5, 0);
+      const trimMat = new THREE.MeshStandardMaterial({ color: 0x584634, roughness: 0.55 });
+      const leftJamb = new THREE.Mesh(new THREE.BoxGeometry(0.28, 3.2, 0.4), frameMat);
+      leftJamb.position.set(-1.14, 1.6, 0);
       leftJamb.castShadow = true;
       leftJamb.receiveShadow = true;
-      const rightJamb = new THREE.Mesh(new THREE.BoxGeometry(0.34, 3.0, 0.34), frameMat);
-      rightJamb.position.set(1.08, 1.5, 0);
+      const rightJamb = new THREE.Mesh(new THREE.BoxGeometry(0.28, 3.2, 0.4), frameMat);
+      rightJamb.position.set(1.14, 1.6, 0);
       rightJamb.castShadow = true;
       rightJamb.receiveShadow = true;
-      const lintel = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.34, 0.34), frameMat);
-      lintel.position.set(0, 3.15, 0);
+      const lintel = new THREE.Mesh(new THREE.BoxGeometry(2.56, 0.36, 0.4), frameMat);
+      lintel.position.set(0, 3.38, 0);
       lintel.castShadow = true;
       lintel.receiveShadow = true;
+      // Threshold (stone step at the bottom)
+      const threshold = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.08, 0.6), trimMat);
+      threshold.position.set(0, 0.04, 0.05);
+      threshold.receiveShadow = true;
 
       // Colored portal glow inside the doorway — looks like a magic
       // teleporter when the doors swing open. Two layers: a darker back
       // wall (depth) and a glowing accent plane in front of it.
-      const portalDarkMat = new THREE.MeshStandardMaterial({ color: 0x141526, roughness: 0.95 });
-      const passageBack = new THREE.Mesh(new THREE.PlaneGeometry(1.92, 2.85), portalDarkMat);
-      passageBack.position.set(0, 1.43, -0.6);
+      const portalDarkMat = new THREE.MeshStandardMaterial({ color: 0x07080c, roughness: 0.95 });
+      const passageBack = new THREE.Mesh(new THREE.PlaneGeometry(2.0, 3.1), portalDarkMat);
+      passageBack.position.set(0, 1.55, -0.75);
       const portalGlowMat = new THREE.MeshBasicMaterial({
         color: door.accent,
         transparent: true,
         opacity: 0.55,
       });
-      const portalGlow = new THREE.Mesh(new THREE.PlaneGeometry(1.7, 2.55), portalGlowMat);
-      portalGlow.position.set(0, 1.43, -0.45);
+      const portalGlow = new THREE.Mesh(new THREE.PlaneGeometry(1.8, 2.8), portalGlowMat);
+      portalGlow.position.set(0, 1.55, -0.55);
       portalGlow.userData = { phase: Math.random() * Math.PI * 2 };
-      const passageTop = new THREE.Mesh(new THREE.PlaneGeometry(1.92, 0.8), portalDarkMat);
-      passageTop.position.set(0, 2.85, -0.2);
+      const passageTop = new THREE.Mesh(new THREE.PlaneGeometry(2.0, 1.0), portalDarkMat);
+      passageTop.position.set(0, 3.1, -0.25);
       passageTop.rotation.x = Math.PI / 2;
-      const passageL = new THREE.Mesh(new THREE.PlaneGeometry(0.8, 2.85), portalDarkMat);
-      passageL.position.set(-0.96, 1.43, -0.2);
+      const passageL = new THREE.Mesh(new THREE.PlaneGeometry(1.0, 3.1), portalDarkMat);
+      passageL.position.set(-1.0, 1.55, -0.25);
       passageL.rotation.y = Math.PI / 2;
       const passageR = passageL.clone();
-      passageR.position.x = 0.96;
+      passageR.position.x = 1.0;
       passageR.rotation.y = -Math.PI / 2;
 
       // Top arch with category color glow
@@ -332,62 +335,96 @@ export default function DemoHub() {
           roughness: 0.4,
         })
       );
-      arch.position.y = 3.0;
+      arch.position.y = 3.18;
       arch.rotation.z = Math.PI;
       arch.castShadow = true;
 
-      // Two door leaves
+      // Two door leaves with real proportions, raised panel mouldings, and proper knobs.
+      // Each leaf: 0.98w x 2.92h x 0.14d. Hinged on the outer edge so when
+      // they swing open they pivot like real double doors.
       const leafMaterial = new THREE.MeshStandardMaterial({
         color: door.color,
-        roughness: 0.5,
-        metalness: 0.1,
+        roughness: 0.55,
+        metalness: 0.05,
         emissive: 0x000000,
       });
-      // Slightly darker accent for the recessed panel
-      const accentDark = darkenHex(door.color, 0.55);
-      const panelMat = new THREE.MeshStandardMaterial({ color: accentDark, roughness: 0.55 });
+      const moulding = darkenHex(door.color, 0.78);
+      const mouldingMat = new THREE.MeshStandardMaterial({ color: moulding, roughness: 0.5 });
+      const knobMat = new THREE.MeshStandardMaterial({ color: 0xf6d36b, emissive: 0x7c5400, emissiveIntensity: 0.25, metalness: 0.6, roughness: 0.35 });
+
+      // Helper: add panel mouldings + icon + knob to a leaf group
+      const dressLeaf = (leaf, slabHalf, knobSide) => {
+        // Raised panel frame — four thin boxes forming a rectangle on the
+        // front face of the slab. Each is 0.04 deep so they sit proud.
+        const panelW = 0.62, panelTop = 0.92, panelBot = -0.62;
+        const stripGeo = (w, h) => new THREE.BoxGeometry(w, h, 0.04);
+        const front = 0.08; // half slab depth + a touch
+        const cx = slabHalf; // panel center x on the leaf
+        // top horizontal
+        const topStrip = new THREE.Mesh(stripGeo(panelW + 0.08, 0.06), mouldingMat);
+        topStrip.position.set(cx, panelTop, front);
+        // bottom horizontal
+        const botStrip = new THREE.Mesh(stripGeo(panelW + 0.08, 0.06), mouldingMat);
+        botStrip.position.set(cx, panelBot, front);
+        // left vertical
+        const leftStrip = new THREE.Mesh(stripGeo(0.06, panelTop - panelBot + 0.06), mouldingMat);
+        leftStrip.position.set(cx - panelW / 2 - 0.01, (panelTop + panelBot) / 2, front);
+        // right vertical
+        const rightStrip = new THREE.Mesh(stripGeo(0.06, panelTop - panelBot + 0.06), mouldingMat);
+        rightStrip.position.set(cx + panelW / 2 + 0.01, (panelTop + panelBot) / 2, front);
+        leaf.add(topStrip, botStrip, leftStrip, rightStrip);
+
+        // Mirror moulding on the BACK face so the door reads when swung open
+        const topB = topStrip.clone(); topB.position.z = -front; leaf.add(topB);
+        const botB = botStrip.clone(); botB.position.z = -front; leaf.add(botB);
+        const leftB = leftStrip.clone(); leftB.position.z = -front; leaf.add(leftB);
+        const rightB = rightStrip.clone(); rightB.position.z = -front; leaf.add(rightB);
+
+        // Icon on front (inside the panel)
+        const iconF = makeTextSprite(door.icon, "#ffffff", "rgba(0,0,0,0)");
+        iconF.scale.set(0.5, 0.5, 1);
+        iconF.position.set(cx, 0.18, front + 0.02);
+        leaf.add(iconF);
+        // Icon on back too
+        const iconB = makeTextSprite(door.icon, "#ffffff", "rgba(0,0,0,0)");
+        iconB.scale.set(0.5, 0.5, 1);
+        iconB.position.set(cx, 0.18, -front - 0.02);
+        leaf.add(iconB);
+
+        // Doorknob: brass rod + ball, on the INNER edge (where the leaves meet)
+        // knobSide = +1 for left-leaf knob on the right side of leaf, -1 for right-leaf knob on the left side
+        const knobX = cx + knobSide * (panelW / 2 + 0.18);
+        const rod = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.1, 10), knobMat);
+        rod.rotation.x = Math.PI / 2;
+        rod.position.set(knobX, -0.15, front + 0.04);
+        const ball = new THREE.Mesh(new THREE.SphereGeometry(0.07, 14, 10), knobMat);
+        ball.position.set(knobX, -0.15, front + 0.12);
+        // Mirror on the back
+        const rodB = rod.clone(); rodB.position.z = -front - 0.04; leaf.add(rodB);
+        const ballB = ball.clone(); ballB.position.z = -front - 0.12; leaf.add(ballB);
+        leaf.add(rod, ball);
+      };
 
       const leftLeaf = new THREE.Group();
-      const leftSlab = new THREE.Mesh(new THREE.BoxGeometry(0.92, 2.55, 0.16), leafMaterial.clone());
-      leftSlab.position.set(0.46, 0, 0);
+      const leftSlab = new THREE.Mesh(new THREE.BoxGeometry(0.98, 2.92, 0.14), leafMaterial.clone());
+      leftSlab.position.set(0.49, 0, 0);
       leftSlab.castShadow = true;
-      const leftPanel = new THREE.Mesh(new THREE.BoxGeometry(0.6, 1.7, 0.02), panelMat);
-      leftPanel.position.set(0.46, 0.2, 0.09);
-      leftLeaf.add(leftSlab, leftPanel);
-      leftLeaf.position.set(-0.46, 1.32, 0.16);
+      leftLeaf.add(leftSlab);
+      dressLeaf(leftLeaf, 0.49, 1);
+      // Pivot at outer edge (x = -1.0 in world); leaves overlap slightly at center for tight seam
+      leftLeaf.position.set(-1.0, 1.5, 0);
 
       const rightLeaf = new THREE.Group();
-      const rightSlab = new THREE.Mesh(new THREE.BoxGeometry(0.92, 2.55, 0.16), leafMaterial.clone());
-      rightSlab.position.set(-0.46, 0, 0);
+      const rightSlab = new THREE.Mesh(new THREE.BoxGeometry(0.98, 2.92, 0.14), leafMaterial.clone());
+      rightSlab.position.set(-0.49, 0, 0);
       rightSlab.castShadow = true;
-      const rightPanel = new THREE.Mesh(new THREE.BoxGeometry(0.6, 1.7, 0.02), panelMat);
-      rightPanel.position.set(-0.46, 0.2, 0.09);
-      rightLeaf.add(rightSlab, rightPanel);
-      rightLeaf.position.set(0.46, 1.32, 0.16);
-
-      // Category icon embossed on each leaf
-      const iconLeft = makeTextSprite(door.icon, "#ffffff", "rgba(0,0,0,0)");
-      iconLeft.scale.set(0.55, 0.55, 1);
-      iconLeft.position.set(0.46, 1.5, 0.26);
-      leftLeaf.add(iconLeft);
-
-      const iconRight = makeTextSprite(door.icon, "#ffffff", "rgba(0,0,0,0)");
-      iconRight.scale.set(0.55, 0.55, 1);
-      iconRight.position.set(-0.46, 1.5, 0.26);
-      rightLeaf.add(iconRight);
-
-      // Handles
-      const handleMat = new THREE.MeshStandardMaterial({ color: 0xfff3c4, emissive: 0x9c7400, metalness: 0.5 });
-      const handleL = new THREE.Mesh(new THREE.SphereGeometry(0.08, 12, 10), handleMat);
-      handleL.position.set(0.38, 1.2, 0.25);
-      leftLeaf.add(handleL);
-      const handleR = new THREE.Mesh(new THREE.SphereGeometry(0.08, 12, 10), handleMat);
-      handleR.position.set(-0.38, 1.2, 0.25);
-      rightLeaf.add(handleR);
+      rightLeaf.add(rightSlab);
+      dressLeaf(rightLeaf, -0.49, -1);
+      rightLeaf.position.set(1.0, 1.5, 0);
 
       // Title plaque above arch
       const plaque = makeTextSprite(door.title, "#ffffff", "#171717");
-      plaque.position.set(0, 3.55, 0.3);
+      plaque.position.set(0, 3.78, 0.3);
       plaque.scale.set(1.3, 0.36, 1);
 
       // Glow ring (hidden until unlock)
@@ -399,7 +436,7 @@ export default function DemoHub() {
       glow.position.set(0, 0.08, 0.5);
       glow.scale.set(0.01, 0.01, 0.01);
 
-      group.add(leftJamb, rightJamb, lintel, passageBack, portalGlow, passageTop, passageL, passageR, arch, leftLeaf, rightLeaf, plaque, glow);
+      group.add(threshold, leftJamb, rightJamb, lintel, passageBack, portalGlow, passageTop, passageL, passageR, arch, leftLeaf, rightLeaf, plaque, glow);
       scene.add(group);
 
       const door3D = {
@@ -799,12 +836,14 @@ export default function DemoHub() {
         }
         progressSnap[d.id] = taskProgress(d);
 
-        // Door open animation
+        // Door open animation — swing leaves outward (toward the camera)
+        // about their outer hinge. ~95° max so they sit nearly flat against
+        // the wall when fully open, like real double doors.
         const targetOpen = d.unlocked ? 1 : 0;
         d.openProgress = THREE.MathUtils.lerp(d.openProgress, targetOpen, 0.06);
-        const swing = d.openProgress * Math.PI * 0.55; // ~99° max
-        d.leftLeaf.rotation.y = swing;
-        d.rightLeaf.rotation.y = -swing;
+        const swing = d.openProgress * Math.PI * 0.52;
+        d.leftLeaf.rotation.y = -swing;
+        d.rightLeaf.rotation.y = swing;
         if (d.unlocked) {
           d.leftSlab.material.emissive.setHex(0x222222);
           d.rightSlab.material.emissive.setHex(0x222222);
@@ -817,11 +856,11 @@ export default function DemoHub() {
           d.glow.material.opacity = Math.max(0, 0.7 - d.openProgress * 0.7);
         }
 
-        // Portal pulse — gently throb the inner glow + slight scale
+        // Portal glow only shows as the door opens; pulse on top of that.
         if (d.portalGlow) {
           const t = clock.elapsedTime + d.portalGlow.userData.phase;
-          const pulse = 0.45 + Math.sin(t * 1.6) * 0.18;
-          d.portalGlow.material.opacity = pulse;
+          const basePulse = 0.45 + Math.sin(t * 1.6) * 0.18;
+          d.portalGlow.material.opacity = basePulse * d.openProgress;
           d.portalGlow.scale.x = 1 + Math.sin(t * 1.1) * 0.05;
           d.portalGlow.scale.y = 1 + Math.cos(t * 1.3) * 0.04;
         }
