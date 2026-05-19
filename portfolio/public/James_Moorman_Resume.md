@@ -34,7 +34,7 @@ AI and operations technology leader with experience building internal software, 
 
 **Representative Systems Delivered**
 - Warehouse management and correction dashboards integrating pick, routing, and fulfillment workflows.
-- Orbit controlled-access document viewer for approved source-document access in production environments.
+- Controlled-access document viewer for approved source-document access in production environments, reducing licensing costs across multiple applications.
 - Electronic traveler workflow for injection molding with job-to-document traceability.
 - MES-style manufacturing execution workflows improving visibility, traceability, and operational control.
 - Program and project management tooling on Power Platform and Dataverse with automated leadership reporting.
@@ -79,4 +79,3 @@ AI and operations technology leader with experience building internal software, 
 - Platforms and Data: Azure, Azure Cosmos DB, Microsoft Dataverse, Microsoft Fabric concepts, Power Platform, Power BI
 - Automation and Workflow: Power Apps, Power Automate, approval workflows, document review support, workflow tracking
 - Systems and Domains: Salesforce-adjacent workflows, warehouse systems, pick-to-light, manufacturing systems, document control, Windchill, Grand Avenue, MediaWiki
-
