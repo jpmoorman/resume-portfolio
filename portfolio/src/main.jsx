@@ -442,6 +442,7 @@ function ToolBadge({ text, resolvedToolIcons }) {
 
 function IconLab({ overrides, setOverrides }) {
   const [draft, setDraft] = useState(() => ({ ...overrides }));
+  const [jsonDraft, setJsonDraft] = useState("");
 
   const setValue = (name, value) => setDraft((prev) => ({ ...prev, [name]: value.trim() }));
 
@@ -457,6 +458,32 @@ function IconLab({ overrides, setOverrides }) {
     setOverrides({});
   };
 
+  const importJson = () => {
+    try {
+      const parsed = JSON.parse(jsonDraft || "{}");
+      if (typeof parsed !== "object" || Array.isArray(parsed) || parsed === null) {
+        alert("JSON must be an object map: { \"Tool Name\": \"https://...\" }");
+        return;
+      }
+      const merged = { ...draft, ...parsed };
+      setDraft(merged);
+      alert("JSON imported into draft. Click Save to apply.");
+    } catch {
+      alert("Invalid JSON.");
+    }
+  };
+
+  const exportJson = async () => {
+    const text = JSON.stringify(draft, null, 2);
+    try {
+      await navigator.clipboard.writeText(text);
+      alert("JSON copied to clipboard.");
+    } catch {
+      setJsonDraft(text);
+      alert("Could not access clipboard. JSON placed in editor.");
+    }
+  };
+
   return (
     <main className="icon-lab">
       <section className="icon-lab-panel">
@@ -465,8 +492,16 @@ function IconLab({ overrides, setOverrides }) {
         <div className="icon-lab-actions">
           <button className="button primary" type="button" onClick={save}>Save</button>
           <button className="button secondary" type="button" onClick={clearAll}>Clear</button>
+          <button className="button secondary" type="button" onClick={exportJson}>Export JSON</button>
+          <button className="button secondary" type="button" onClick={importJson}>Import JSON</button>
           <a className="button secondary" href="#home">Back to site</a>
         </div>
+        <textarea
+          className="icon-lab-json"
+          value={jsonDraft}
+          onChange={(event) => setJsonDraft(event.target.value)}
+          placeholder='Paste JSON map here, e.g. { "OpenAI Codex": "https://.../favicon.ico" }'
+        />
         <div className="icon-lab-grid">
           {iconLabTools.map((tool) => (
             <label key={tool} className="icon-lab-row">

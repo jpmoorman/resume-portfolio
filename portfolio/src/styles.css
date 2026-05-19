@@ -613,6 +613,17 @@ h4 {
   gap: 10px;
 }
 
+.icon-lab-json {
+  width: 100%;
+  min-height: 120px;
+  margin-bottom: 16px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font: 0.92rem/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  resize: vertical;
+}
+
 .icon-lab-row {
   display: grid;
   grid-template-columns: minmax(240px, 0.5fr) minmax(0, 1.5fr);
