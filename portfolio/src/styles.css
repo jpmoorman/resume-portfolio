@@ -488,6 +488,13 @@ h4 {
   margin: 0;
 }
 
+.resume-tool-icons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
 .resume-file-frame {
   width: 100%;
   min-height: 560px;

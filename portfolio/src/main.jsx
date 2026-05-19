@@ -284,6 +284,13 @@ function Resume() {
         <section>
           <h4>Core Stack</h4>
           <p>React | Python | SQL | APIs | Microsoft Fabric | Dataverse | Power Platform | Azure | Cosmos DB | Workflow Automation</p>
+          <div className="resume-tool-icons" aria-label="Primary AI tool stack">
+            <ToolBadge text="OpenAI Codex" />
+            <ToolBadge text="Claude Code" />
+            <ToolBadge text="Windsurf" />
+            <ToolBadge text="OpenCode" />
+            <ToolBadge text="Microsoft Fabric" />
+          </div>
         </section>
 
         <section>
