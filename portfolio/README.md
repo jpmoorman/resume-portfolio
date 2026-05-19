@@ -37,12 +37,14 @@ Projects are stored in `src/data/projects.json`. Add or edit entries there. Each
 3. Choose **Create application**.
 4. Choose **Pages**.
 5. Connect the GitHub repository.
-6. Set the project root directory to `portfolio`.
-7. Set the build command to `npm run build`.
-8. Set the build output directory to `dist`.
-9. Deploy.
+6. Use the Vite framework preset, or enter the settings manually:
+   - Root directory: `portfolio`
+   - Build command: `npm run build`
+   - Build output directory: `dist`
+   - Deploy command: leave blank
+7. Deploy.
 
-No backend, serverless functions, or environment variables are required.
+The main portfolio is a static Vite site. The optional icon editor uses a Cloudflare Pages Function and KV binding so icon overrides can be saved for all visitors.
 
 ## Cloudflare KV for Icon Overrides
 
