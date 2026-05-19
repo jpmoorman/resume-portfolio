@@ -435,6 +435,42 @@ h4 {
   background: #f7f5f0;
 }
 
+.demo-page {
+  min-height: calc(100vh - 76px);
+}
+
+.demo-page h1 {
+  max-width: 920px;
+  margin-bottom: 18px;
+  font-size: clamp(2.65rem, 6vw, 5.5rem);
+}
+
+.demo-card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.demo-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-height: 100%;
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.demo-card p {
+  color: #4e4b45;
+}
+
+.demo-card .project-demo-link {
+  align-self: flex-start;
+  margin-top: auto;
+}
+
 .orbit-demo {
   display: grid;
   gap: 18px;
@@ -947,6 +983,7 @@ h4 {
   .impact-grid,
   .project-grid,
   .project-details,
+  .demo-card-grid,
   .orbit-flow,
   .document-preview dl,
   .skill-grid,

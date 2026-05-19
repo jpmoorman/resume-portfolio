@@ -141,6 +141,7 @@ async function saveKvOverrides(overrides, token) {
 function App() {
   const [activeCategory, setActiveCategory] = useState("All");
   const [hash, setHash] = useState(window.location.hash || "");
+  const [path, setPath] = useState(window.location.pathname || "/");
   const [iconOverrides, setIconOverrides] = useState(() => {
     try {
       return JSON.parse(window.localStorage.getItem(ICON_OVERRIDE_KEY) || "{}");
@@ -153,6 +154,12 @@ function App() {
     const onHash = () => setHash(window.location.hash || "");
     window.addEventListener("hashchange", onHash);
     return () => window.removeEventListener("hashchange", onHash);
+  }, []);
+
+  React.useEffect(() => {
+    const onPopState = () => setPath(window.location.pathname || "/");
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
   }, []);
 
   React.useEffect(() => {
@@ -195,6 +202,17 @@ function App() {
     );
   }
 
+  if (path === "/demos/orbit") {
+    return (
+      <>
+        <Header />
+        <main>
+          <OrbitDemoPage />
+        </main>
+      </>
+    );
+  }
+
   return (
     <>
       <Header />
@@ -206,7 +224,7 @@ function App() {
           setActiveCategory={setActiveCategory}
           resolvedToolIcons={resolvedToolIcons}
         />
-        <ProjectDemos />
+        <DemosOverview />
         <Resume resolvedToolIcons={resolvedToolIcons} />
         <Skills resolvedToolIcons={resolvedToolIcons} />
         <Contact />
@@ -218,7 +236,7 @@ function App() {
 function Header() {
   return (
     <header className="site-header">
-      <a className="brand" href="#home" aria-label={`${profile.name} home`}>
+      <a className="brand" href="/#home" aria-label={`${profile.name} home`}>
         <span className="brand-mark">JM</span>
         <span>
           <strong>{profile.name}</strong>
@@ -226,12 +244,12 @@ function Header() {
         </span>
       </a>
       <nav className="nav-links" aria-label="Primary navigation">
-        <a href="#home">Home</a>
-        <a href="#projects">Projects</a>
-        <a href="#demos">Demos</a>
-        <a href="#resume">Resume</a>
-        <a href="#skills">Skills</a>
-        <a href="#contact">Contact</a>
+        <a href="/#home">Home</a>
+        <a href="/#projects">Projects</a>
+        <a href="/#demos">Demos</a>
+        <a href="/#resume">Resume</a>
+        <a href="/#skills">Skills</a>
+        <a href="/#contact">Contact</a>
       </nav>
       <a className="header-action" href={profile.resumeDownloads?.pdf || profile.resumeDownload} download>
         <Download size={18} aria-hidden="true" />
@@ -353,8 +371,8 @@ function ProjectCard({ project, resolvedToolIcons }) {
         </ul>
       </div>
       {project.id === "orbit-document-viewer" && (
-        <a className="project-demo-link" href="#demos">
-          Open simplified system demo
+        <a className="project-demo-link" href="/demos/orbit">
+          Open Orbit system demo
           <ArrowUpRight size={16} aria-hidden="true" />
         </a>
       )}
@@ -398,7 +416,64 @@ const orbitExamples = [
   },
 ];
 
-function ProjectDemos() {
+function DemosOverview() {
+  return (
+    <section id="demos" className="section demo-section">
+      <div className="section-heading">
+        <p className="eyebrow">Interactive demos</p>
+        <h2>Small system demos with their own pages.</h2>
+        <p>
+          Each demo opens as a focused sub page so reviewers can inspect one workflow at a time
+          without digging through the full portfolio.
+        </p>
+      </div>
+
+      <div className="demo-card-grid">
+        <article className="demo-card">
+          <span className="category-pill">
+            <FileText size={16} aria-hidden="true" />
+            Quality system demo
+          </span>
+          <h3>Orbit controlled document flow</h3>
+          <p>
+            A simplified scanner-to-API-to-document-viewer walkthrough showing how serial context
+            moves through the web app, API layer, matching service, and approved document preview.
+          </p>
+          <div className="tool-list" aria-label="Orbit demo surfaces">
+            {["Web app", "API", "Serial Doc", "Document viewer"].map((tool) => (
+              <span key={tool}>{tool}</span>
+            ))}
+          </div>
+          <a className="project-demo-link" href="/demos/orbit">
+            Open demo page
+            <ArrowUpRight size={16} aria-hidden="true" />
+          </a>
+        </article>
+      </div>
+    </section>
+  );
+}
+
+function OrbitDemoPage() {
+  return (
+    <section className="section demo-section demo-page">
+      <div className="section-heading">
+        <p className="eyebrow">Interactive demo</p>
+        <h1>Orbit system flow, simplified.</h1>
+        <p>
+          A public-safe walkthrough of the pattern: scan a serial number, resolve the product context,
+          match it to controlled documentation, then open the approved viewer.
+        </p>
+        <a className="button secondary" href="/#demos">
+          Back to demos
+        </a>
+      </div>
+      <OrbitDemoInteractive />
+    </section>
+  );
+}
+
+function OrbitDemoInteractive() {
   const [serial, setSerial] = useState(orbitExamples[0].serial);
   const [workArea, setWorkArea] = useState(orbitExamples[0].area);
 
@@ -426,99 +501,88 @@ function ProjectDemos() {
   };
 
   return (
-    <section id="demos" className="section demo-section">
-      <div className="section-heading">
-        <p className="eyebrow">Interactive demos</p>
-        <h2>Orbit system flow, simplified.</h2>
-        <p>
-          A public-safe walkthrough of the pattern: scan a serial number, resolve the product context,
-          match it to controlled documentation, then open the approved viewer.
-        </p>
+    <div className="orbit-demo" aria-label="Simplified Orbit system demo">
+      <div className="orbit-controls">
+        <div>
+          <label htmlFor="orbit-serial">Serial number</label>
+          <input
+            id="orbit-serial"
+            value={serial}
+            onChange={(event) => setSerial(event.target.value)}
+            placeholder="Scan or type a serial"
+          />
+        </div>
+        <div>
+          <label htmlFor="orbit-area">Work area</label>
+          <select
+            id="orbit-area"
+            value={workArea}
+            onChange={(event) => setWorkArea(event.target.value)}
+          >
+            {["Assembly", "Wiring", "Quality Review"].map((area) => (
+              <option key={area} value={area}>{area}</option>
+            ))}
+          </select>
+        </div>
+        <div className="example-serials" aria-label="Example serial numbers">
+          {orbitExamples.map((example) => (
+            <button
+              key={example.serial}
+              type="button"
+              onClick={() => {
+                setSerial(example.serial);
+                setWorkArea(example.area);
+              }}
+            >
+              {example.serial}
+            </button>
+          ))}
+        </div>
       </div>
 
-      <div className="orbit-demo" aria-label="Simplified Orbit system demo">
-        <div className="orbit-controls">
-          <div>
-            <label htmlFor="orbit-serial">Serial number</label>
-            <input
-              id="orbit-serial"
-              value={serial}
-              onChange={(event) => setSerial(event.target.value)}
-              placeholder="Scan or type a serial"
-            />
-          </div>
-          <div>
-            <label htmlFor="orbit-area">Work area</label>
-            <select
-              id="orbit-area"
-              value={workArea}
-              onChange={(event) => setWorkArea(event.target.value)}
-            >
-              {["Assembly", "Wiring", "Quality Review"].map((area) => (
-                <option key={area} value={area}>{area}</option>
-              ))}
-            </select>
-          </div>
-          <div className="example-serials" aria-label="Example serial numbers">
-            {orbitExamples.map((example) => (
-              <button
-                key={example.serial}
-                type="button"
-                onClick={() => {
-                  setSerial(example.serial);
-                  setWorkArea(example.area);
-                }}
-              >
-                {example.serial}
-              </button>
+      <div className="orbit-flow" aria-label="System connection diagram">
+        <FlowNode icon={ScanLine} title="Web / scanner" detail="Operator enters or scans the serial at a station." />
+        <FlowNode icon={Server} title="API layer" detail="Normalizes the request and asks for product context." />
+        <FlowNode icon={Database} title="Serial Doc match" detail="Compares family, area, and option codes to controlled rules." />
+        <FlowNode icon={FileText} title="Document viewer" detail="Returns the approved source document for the station." />
+      </div>
+
+      <div className="orbit-panels">
+        <article>
+          <h3>API response</h3>
+          <pre>{JSON.stringify(result, null, 2)}</pre>
+        </article>
+        <article className="document-preview">
+          <h3>Approved viewer preview</h3>
+          <span className="doc-status">{result.matchedDocument.status}</span>
+          <strong>{result.matchedDocument.documentId}</strong>
+          <p>{result.matchedDocument.title}</p>
+          <dl>
+            <div>
+              <dt>Serial</dt>
+              <dd>{result.serial}</dd>
+            </div>
+            <div>
+              <dt>Work area</dt>
+              <dd>{result.workArea}</dd>
+            </div>
+            <div>
+              <dt>Family</dt>
+              <dd>{result.deviceProfile.family}</dd>
+            </div>
+            <div>
+              <dt>Match</dt>
+              <dd>{result.matchedDocument.confidence}</dd>
+            </div>
+          </dl>
+          <div className="option-code-row">
+            {result.deviceProfile.optionCodes.map((code) => (
+              <span key={code}>{code}</span>
             ))}
           </div>
-        </div>
-
-        <div className="orbit-flow" aria-label="System connection diagram">
-          <FlowNode icon={ScanLine} title="Web / scanner" detail="Operator enters or scans the serial at a station." />
-          <FlowNode icon={Server} title="API layer" detail="Normalizes the request and asks for product context." />
-          <FlowNode icon={Database} title="Serial Doc match" detail="Compares family, area, and option codes to controlled rules." />
-          <FlowNode icon={FileText} title="Document viewer" detail="Returns the approved source document for the station." />
-        </div>
-
-        <div className="orbit-panels">
-          <article>
-            <h3>API response</h3>
-            <pre>{JSON.stringify(result, null, 2)}</pre>
-          </article>
-          <article className="document-preview">
-            <h3>Approved viewer preview</h3>
-            <span className="doc-status">{result.matchedDocument.status}</span>
-            <strong>{result.matchedDocument.documentId}</strong>
-            <p>{result.matchedDocument.title}</p>
-            <dl>
-              <div>
-                <dt>Serial</dt>
-                <dd>{result.serial}</dd>
-              </div>
-              <div>
-                <dt>Work area</dt>
-                <dd>{result.workArea}</dd>
-              </div>
-              <div>
-                <dt>Family</dt>
-                <dd>{result.deviceProfile.family}</dd>
-              </div>
-              <div>
-                <dt>Match</dt>
-                <dd>{result.matchedDocument.confidence}</dd>
-              </div>
-            </dl>
-            <div className="option-code-row">
-              {result.deviceProfile.optionCodes.map((code) => (
-                <span key={code}>{code}</span>
-              ))}
-            </div>
-          </article>
-        </div>
+        </article>
       </div>
-    </section>
+    </div>
   );
 }
 
