@@ -214,14 +214,37 @@ export default function DemoHub() {
       group.lookAt(0, 0, 0);
       group.rotation.y += Math.PI;
 
-      // Frame
-      const frame = new THREE.Mesh(
-        new THREE.BoxGeometry(2.5, 3.1, 0.32),
-        new THREE.MeshStandardMaterial({ color: 0x2a261f, roughness: 0.7 })
-      );
-      frame.position.y = 1.55;
-      frame.castShadow = true;
-      frame.receiveShadow = true;
+      // Doorway: instead of a single solid box, build a frame with an actual
+      // opening so when the leaves swing aside you see through to a dark
+      // passage behind. Frame is made of two side jambs + a top lintel.
+      const frameMat = new THREE.MeshStandardMaterial({ color: 0x3a2f23, roughness: 0.65 });
+      const leftJamb = new THREE.Mesh(new THREE.BoxGeometry(0.34, 3.0, 0.34), frameMat);
+      leftJamb.position.set(-1.08, 1.5, 0);
+      leftJamb.castShadow = true;
+      leftJamb.receiveShadow = true;
+      const rightJamb = new THREE.Mesh(new THREE.BoxGeometry(0.34, 3.0, 0.34), frameMat);
+      rightJamb.position.set(1.08, 1.5, 0);
+      rightJamb.castShadow = true;
+      rightJamb.receiveShadow = true;
+      const lintel = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.34, 0.34), frameMat);
+      lintel.position.set(0, 3.15, 0);
+      lintel.castShadow = true;
+      lintel.receiveShadow = true;
+
+      // Dark passage tunnel behind the doorway so it reads as depth.
+      const passageMat = new THREE.MeshStandardMaterial({ color: 0x0d0e12, roughness: 0.95 });
+      const passageBack = new THREE.Mesh(new THREE.PlaneGeometry(1.92, 2.85), passageMat);
+      passageBack.position.set(0, 1.43, -0.6);
+      // Passage receives light dimly; cast shadow off
+      const passageTop = new THREE.Mesh(new THREE.PlaneGeometry(1.92, 0.8), passageMat);
+      passageTop.position.set(0, 2.85, -0.2);
+      passageTop.rotation.x = Math.PI / 2;
+      const passageL = new THREE.Mesh(new THREE.PlaneGeometry(0.8, 2.85), passageMat);
+      passageL.position.set(-0.96, 1.43, -0.2);
+      passageL.rotation.y = Math.PI / 2;
+      const passageR = passageL.clone();
+      passageR.position.x = 0.96;
+      passageR.rotation.y = -Math.PI / 2;
 
       // Top arch with category color glow
       const arch = new THREE.Mesh(
@@ -292,7 +315,7 @@ export default function DemoHub() {
       glow.position.set(0, 0.08, 0.5);
       glow.scale.set(0.01, 0.01, 0.01);
 
-      group.add(frame, arch, leftLeaf, rightLeaf, plaque, glow);
+      group.add(leftJamb, rightJamb, lintel, passageBack, passageTop, passageL, passageR, arch, leftLeaf, rightLeaf, plaque, glow);
       scene.add(group);
 
       const door3D = {
@@ -337,21 +360,30 @@ export default function DemoHub() {
       const a = (Math.PI * 2 * (i + 0.5)) / DOOR_CONFIGS.length + Math.PI;
       const px = Math.sin(a) * (DOOR_RADIUS + 0.4);
       const pz = Math.cos(a) * (DOOR_RADIUS + 0.4);
-      const pillar = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.32, 0.36, 3.4, 14),
-        new THREE.MeshStandardMaterial({ color: 0xb6ad94, roughness: 0.8 })
-      );
-      pillar.position.set(px, 1.7, pz);
-      pillar.castShadow = true;
-      pillar.receiveShadow = true;
-      scene.add(pillar);
-
-      const cap2 = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.42, 0.42, 0.22, 14),
-        new THREE.MeshStandardMaterial({ color: 0x6b6450, roughness: 0.7 })
-      );
-      cap2.position.set(px, 3.52, pz);
-      scene.add(cap2);
+      const pillarStoneMat = new THREE.MeshStandardMaterial({ color: 0xcfc7ad, roughness: 0.85 });
+      const pillarDarkMat = new THREE.MeshStandardMaterial({ color: 0x6f6750, roughness: 0.65 });
+      // Base (wider plinth)
+      const pillarBase = new THREE.Mesh(new THREE.BoxGeometry(0.92, 0.22, 0.92), pillarDarkMat);
+      pillarBase.position.set(px, 0.11, pz);
+      pillarBase.castShadow = true;
+      pillarBase.receiveShadow = true;
+      const pillarBaseTop = new THREE.Mesh(new THREE.CylinderGeometry(0.44, 0.46, 0.18, 18), pillarStoneMat);
+      pillarBaseTop.position.set(px, 0.31, pz);
+      pillarBaseTop.castShadow = true;
+      // Tapered shaft
+      const pillarShaft = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.36, 2.9, 18), pillarStoneMat);
+      pillarShaft.position.set(px, 1.85, pz);
+      pillarShaft.castShadow = true;
+      pillarShaft.receiveShadow = true;
+      // Capital (three layers)
+      const capLower = new THREE.Mesh(new THREE.CylinderGeometry(0.36, 0.32, 0.14, 18), pillarStoneMat);
+      capLower.position.set(px, 3.37, pz);
+      const capMid = new THREE.Mesh(new THREE.CylinderGeometry(0.46, 0.4, 0.14, 18), pillarStoneMat);
+      capMid.position.set(px, 3.5, pz);
+      const capTop = new THREE.Mesh(new THREE.BoxGeometry(0.96, 0.16, 0.96), pillarDarkMat);
+      capTop.position.set(px, 3.66, pz);
+      capLower.castShadow = capMid.castShadow = capTop.castShadow = true;
+      scene.add(pillarBase, pillarBaseTop, pillarShaft, capLower, capMid, capTop);
     }
 
     // ── Controls ──────────────────────────────────────────────────────
@@ -896,7 +928,7 @@ function buildPlayer() {
 
   // Torso (red)
   const torso = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.26, 0.3, 0.5, 16),
+    new THREE.CylinderGeometry(0.26, 0.3, 0.5, 28),
     new THREE.MeshStandardMaterial({ color: 0xd24a3c, roughness: 0.5 })
   );
   torso.position.y = 0.55;
@@ -905,7 +937,7 @@ function buildPlayer() {
 
   // Head
   const head = new THREE.Mesh(
-    new THREE.SphereGeometry(0.28, 24, 18),
+    new THREE.SphereGeometry(0.28, 32, 24),
     new THREE.MeshStandardMaterial({ color: 0xffd9b5, roughness: 0.55 })
   );
   head.position.y = 1.05;
@@ -945,35 +977,43 @@ function buildPlayer() {
   // Arms (two boxes)
   const armMat = new THREE.MeshStandardMaterial({ color: 0xd24a3c, roughness: 0.55 });
   const armGeo = new THREE.BoxGeometry(0.12, 0.42, 0.12);
-  const armL = new THREE.Group();
-  const armLMesh = new THREE.Mesh(armGeo, armMat);
-  armLMesh.position.y = -0.21;
-  armLMesh.castShadow = true;
-  armL.add(armLMesh);
-  armL.position.set(-0.32, 0.78, 0);
-  const armR = new THREE.Group();
-  const armRMesh = new THREE.Mesh(armGeo, armMat);
-  armRMesh.position.y = -0.21;
-  armRMesh.castShadow = true;
-  armR.add(armRMesh);
-  armR.position.set(0.32, 0.78, 0);
+  const handMat = new THREE.MeshStandardMaterial({ color: 0xffe1c2, roughness: 0.6 });
+  const handGeo = new THREE.SphereGeometry(0.09, 12, 10);
+  const buildArm = (side) => {
+    const g = new THREE.Group();
+    const upper = new THREE.Mesh(armGeo, armMat);
+    upper.position.y = -0.21;
+    upper.castShadow = true;
+    const hand = new THREE.Mesh(handGeo, handMat);
+    hand.position.y = -0.46;
+    hand.castShadow = true;
+    g.add(upper, hand);
+    g.position.set(side * 0.32, 0.78, 0);
+    return g;
+  };
+  const armL = buildArm(-1);
+  const armR = buildArm(1);
   root.add(armL, armR);
 
-  // Legs (jeans color)
+  // Legs (jeans) with little shoes at the ends
   const legMat = new THREE.MeshStandardMaterial({ color: 0x1d3a8a, roughness: 0.6 });
   const legGeo = new THREE.BoxGeometry(0.14, 0.36, 0.14);
-  const legL = new THREE.Group();
-  const legLMesh = new THREE.Mesh(legGeo, legMat);
-  legLMesh.position.y = -0.18;
-  legLMesh.castShadow = true;
-  legL.add(legLMesh);
-  legL.position.set(-0.13, 0.32, 0);
-  const legR = new THREE.Group();
-  const legRMesh = new THREE.Mesh(legGeo, legMat);
-  legRMesh.position.y = -0.18;
-  legRMesh.castShadow = true;
-  legR.add(legRMesh);
-  legR.position.set(0.13, 0.32, 0);
+  const shoeMat = new THREE.MeshStandardMaterial({ color: 0x171717, roughness: 0.7 });
+  const shoeGeo = new THREE.BoxGeometry(0.18, 0.1, 0.26);
+  const buildLeg = (side) => {
+    const g = new THREE.Group();
+    const seg = new THREE.Mesh(legGeo, legMat);
+    seg.position.y = -0.18;
+    seg.castShadow = true;
+    const shoe = new THREE.Mesh(shoeGeo, shoeMat);
+    shoe.position.set(0, -0.4, 0.04);
+    shoe.castShadow = true;
+    g.add(seg, shoe);
+    g.position.set(side * 0.13, 0.32, 0);
+    return g;
+  };
+  const legL = buildLeg(-1);
+  const legR = buildLeg(1);
   root.add(legL, legR);
 
   return { root, torso, head, hat, armL, armR, legL, legR };
@@ -981,27 +1021,43 @@ function buildPlayer() {
 
 function animatePlayer(rig, legsActive, walkPhase, time, sliding, speedRatio) {
   if (legsActive) {
-    // Amplitude scales with how fast the body is going (so a slow slide
-    // has small leg sweep, a full sprint has bigger sweep).
-    const amp = 0.35 + 0.45 * Math.max(0.4, speedRatio); // 0.53 .. 0.8
+    // Leg amplitude scales with speed
+    const amp = 0.35 + 0.45 * Math.max(0.4, speedRatio);
     const sw = Math.sin(walkPhase) * amp;
+    // Arms swing opposite phase, slightly less amplitude. Also bend the
+    // upper arms forward a bit so they feel attached to a torso rather
+    // than dangling straight.
     const swA = Math.sin(walkPhase + Math.PI) * (amp * 0.85);
     rig.legL.rotation.x = sw;
     rig.legR.rotation.x = -sw;
     rig.armL.rotation.x = swA;
     rig.armR.rotation.x = -swA;
+    // Slight outward arm rotation so they don\'t clip the torso
+    rig.armL.rotation.z = 0.08;
+    rig.armR.rotation.z = -0.08;
+    // Vertical bounce on each step
     rig.root.position.y = Math.abs(Math.sin(walkPhase)) * (0.04 + 0.04 * speedRatio);
+    // Side-to-side hip sway with the step (sin at half frequency so hips
+    // shift over a full stride, not on every footfall)
+    rig.root.rotation.z = Math.sin(walkPhase * 0.5) * 0.06 * speedRatio;
+    // Head looks slightly up while running for energy
+    rig.head.rotation.x = -0.05 * speedRatio;
+    rig.hat.rotation.x = -0.05 * speedRatio;
   } else {
     rig.legL.rotation.x *= 0.85;
     rig.legR.rotation.x *= 0.85;
     rig.armL.rotation.x *= 0.85;
     rig.armR.rotation.x *= 0.85;
+    rig.armL.rotation.z *= 0.9;
+    rig.armR.rotation.z *= 0.9;
+    rig.root.rotation.z *= 0.85;
+    rig.head.rotation.x *= 0.9;
+    rig.hat.rotation.x *= 0.9;
     rig.root.position.y = Math.sin(time * 2.2) * 0.025;
   }
-  // Slide lean: when no input but still moving, lean back slightly as if
-  // skidding to a stop. The lean is along the local X (forward axis is +Z).
-  const targetTilt = sliding ? -0.18 * speedRatio : 0;
-  rig.root.rotation.x = rig.root.rotation.x * 0.85 + targetTilt * 0.15;
+  // Slide lean (forward axis is +Z)
+  const targetTilt = sliding ? -0.22 * speedRatio : 0;
+  rig.root.rotation.x = rig.root.rotation.x * 0.82 + targetTilt * 0.18;
   // Subtle hat spin
   rig.hat.rotation.y += 0.02;
 }
