@@ -265,7 +265,7 @@ function Header() {
         <span className="brand-mark">JM</span>
         <span>
           <strong>{profile.name}</strong>
-          <small>{profile.targetRole} portfolio</small>
+          <small>{profile.targetRole}</small>
         </span>
       </a>
       <nav className="nav-links" aria-label="Primary navigation">
