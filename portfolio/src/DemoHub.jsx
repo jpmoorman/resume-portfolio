@@ -1125,11 +1125,11 @@ export default function DemoHub() {
 function buildPlayer() {
   const root = new THREE.Group();
 
-  // ── Chibi proportions: oversized head, stout body, big hands, big shoes
-  // Torso (red shirt) with overall straps + denim bib
-  const shirtMat = new THREE.MeshStandardMaterial({ color: 0xd24a3c, roughness: 0.5 });
-  const denimMat = new THREE.MeshStandardMaterial({ color: 0x1d3a8a, roughness: 0.6 });
-  const buttonMat = new THREE.MeshStandardMaterial({ color: 0xffd000, emissive: 0x553b00 });
+  // ── Chibi proportions: 007-style black tuxedo, white dress shirt, bow tie
+  // (Material names are kept for compatibility with the build pipeline below.)
+  const shirtMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.45 });
+  const denimMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.4 });
+  const buttonMat = new THREE.MeshStandardMaterial({ color: 0x000000, roughness: 0.35 });
 
   const torso = new THREE.Mesh(
     new THREE.CylinderGeometry(0.3, 0.34, 0.46, 24),
@@ -1144,15 +1144,21 @@ function buildPlayer() {
   bib.position.set(0, 0.6, 0.3);
   bib.castShadow = true;
   root.add(bib);
-  // Two yellow buttons on the bib
-  const button1 = new THREE.Mesh(new THREE.SphereGeometry(0.04, 10, 8), buttonMat);
-  button1.position.set(-0.13, 0.69, 0.34);
-  const button2 = button1.clone();
-  button2.position.x = 0.13;
-  root.add(button1, button2);
-  // Overall straps (two thin vertical denim boxes over shoulders)
+  // Black bow tie at the collar (two small wings)
+  const bowGeo = new THREE.BoxGeometry(0.08, 0.06, 0.04);
+  const bowL = new THREE.Mesh(bowGeo, buttonMat);
+  bowL.position.set(-0.045, 0.83, 0.34);
+  bowL.rotation.z = -0.2;
+  const bowR = bowL.clone();
+  bowR.position.x = 0.045;
+  bowR.rotation.z = 0.2;
+  // Small black knot in the center
+  const bowKnot = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.04, 0.045), buttonMat);
+  bowKnot.position.set(0, 0.83, 0.345);
+  root.add(bowL, bowR, bowKnot);
+  // Jacket lapels (black angled rectangles over the white shirt)
   const strapGeo = new THREE.BoxGeometry(0.08, 0.34, 0.06);
-  const strapL = new THREE.Mesh(strapGeo, denimMat);
+  const strapL = new THREE.Mesh(strapGeo, shirtMat);
   strapL.position.set(-0.16, 0.8, 0.3);
   const strapR = strapL.clone();
   strapR.position.x = 0.16;
@@ -1200,47 +1206,32 @@ function buildPlayer() {
   nose.position.set(0, 1.13, 0.42);
   root.add(nose);
 
-  // Mustache (two small dark blocks under the nose)
-  const stacheGeo = new THREE.BoxGeometry(0.13, 0.05, 0.04);
-  const stacheMat = new THREE.MeshStandardMaterial({ color: 0x3a2c1f, roughness: 0.6 });
-  const stacheL = new THREE.Mesh(stacheGeo, stacheMat);
-  stacheL.position.set(-0.07, 1.05, 0.41);
-  stacheL.rotation.z = 0.1;
-  const stacheR = stacheL.clone();
-  stacheR.position.x = 0.07;
-  stacheR.rotation.z = -0.1;
-  root.add(stacheL, stacheR);
+  // (Bond is clean-shaven — mustache removed in 007 redesign)
 
-  // Hat (taller cone)
+  // "Hat" = slicked-back dark hair (kept as `hat` for animation compatibility).
+  // Flattened sphere on the crown, scaled wider than tall so it reads as a hairstyle.
   const hat = new THREE.Mesh(
-    new THREE.ConeGeometry(0.4, 0.5, 22),
-    new THREE.MeshStandardMaterial({ color: 0x245ee8, roughness: 0.55 })
+    new THREE.SphereGeometry(0.42, 24, 16),
+    new THREE.MeshStandardMaterial({ color: 0x1a120b, roughness: 0.55 })
   );
-  hat.position.y = 1.66;
+  hat.position.y = 1.32;
+  hat.scale.set(1.02, 0.62, 1.05);
   hat.castShadow = true;
   root.add(hat);
 
-  // Hat brim
-  const brim = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.44, 0.44, 0.08, 22),
-    new THREE.MeshStandardMaterial({ color: 0x1a3f9c, roughness: 0.6 })
+  // Subtle hair part: thin dark strip across the crown
+  const part = new THREE.Mesh(
+    new THREE.BoxGeometry(0.36, 0.012, 0.04),
+    new THREE.MeshStandardMaterial({ color: 0x0a0604, roughness: 0.6 })
   );
-  brim.position.y = 1.42;
-  root.add(brim);
-
-  // Cap front emblem: little yellow circle on the hat brim
-  const emblem = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.09, 0.09, 0.02, 18),
-    new THREE.MeshStandardMaterial({ color: 0xffd000, emissive: 0x553b00 })
-  );
-  emblem.position.set(0, 1.51, 0.4);
-  emblem.rotation.x = Math.PI / 2;
-  root.add(emblem);
+  part.position.set(0.04, 1.5, 0);
+  part.rotation.z = -0.08;
+  root.add(part);
 
   // Arms — short red sleeves + WHITE GLOVES
   const armMat = shirtMat;
   const armGeo = new THREE.BoxGeometry(0.14, 0.36, 0.14);
-  const gloveMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.55 });
+  const gloveMat = new THREE.MeshStandardMaterial({ color: 0xffc9a0, roughness: 0.55 });
   const gloveGeo = new THREE.SphereGeometry(0.13, 14, 10);
   const buildArm = (side) => {
     const g = new THREE.Group();
@@ -1260,11 +1251,11 @@ function buildPlayer() {
 
   // Legs — denim, with BIG shoes
   const legGeo = new THREE.BoxGeometry(0.16, 0.32, 0.16);
-  const shoeMat = new THREE.MeshStandardMaterial({ color: 0x5a2a1a, roughness: 0.7 });
+  const shoeMat = new THREE.MeshStandardMaterial({ color: 0x000000, roughness: 0.35 });
   const shoeGeo = new THREE.BoxGeometry(0.24, 0.16, 0.36);
   const buildLeg = (side) => {
     const g = new THREE.Group();
-    const seg = new THREE.Mesh(legGeo, denimMat);
+    const seg = new THREE.Mesh(legGeo, shirtMat);
     seg.position.y = -0.16;
     seg.castShadow = true;
     const shoe = new THREE.Mesh(shoeGeo, shoeMat);
