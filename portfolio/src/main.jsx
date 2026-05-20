@@ -443,9 +443,7 @@ function DemosOverview() {
   return (
     <section id="demos" className="section demo-section">
       <div className="section-heading demo-section-heading">
-        <p className="eyebrow">Interactive demos</p>
         <h2>Six doors. Six demos.</h2>
-        <a className="hub-fullscreen-link" href="/hub">Open full-screen hub ↗</a>
       </div>
 
       <React.Suspense fallback={<div className="demo-hub-loading">Loading demo room...</div>}>
