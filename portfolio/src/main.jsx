@@ -442,16 +442,13 @@ const orbitExamples = [
 function DemosOverview() {
   return (
     <section id="demos" className="section demo-section">
-      <div className="section-heading">
+      <div className="section-heading demo-section-heading">
         <p className="eyebrow">Interactive demos</p>
-        <h2>Six doors. Six demos. Each opens after a quick task.</h2>
+        <h2>Six doors. Six demos.</h2>
         <p>
-          Move with W A S D or arrow keys. Walk up to a door, complete the small task in front of
-          it, then step through to enter that demo. Returning to the hub always drops you back at
-          the center.
-        </p>
-        <p>
-          <a className="button secondary hub-fullscreen-link" href="/hub">Open full-screen hub &nearr;</a>
+          Walk up, solve the small task in front of a door, step through. Or type a plain-English
+          command in the chat below the hub.{" "}
+          <a className="hub-fullscreen-link" href="/hub">Open full-screen hub &nearr;</a>
         </p>
       </div>
 

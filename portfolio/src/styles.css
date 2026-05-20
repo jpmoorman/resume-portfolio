@@ -1628,3 +1628,15 @@ h4 {
 @keyframes demoHubToastOut {
   to { opacity: 0; transform: translate(-50%, -60%) scale(0.96); }
 }
+
+/* Inline full-screen hub link — looks like a text link, not a chunky button */
+.demo-section-heading .hub-fullscreen-link {
+  color: var(--blue);
+  font-weight: 800;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.demo-section-heading .hub-fullscreen-link:hover {
+  text-decoration: underline;
+}
