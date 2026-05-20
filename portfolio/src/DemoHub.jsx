@@ -1448,7 +1448,9 @@ function updateTask(door3D, player, playerPlanar, delta) {
       plate.userData.glow = 1;
       t.completed = true;
     }
-    plate.material.emissiveIntensity = 0.3 + (plate.userData.glow || 0) * 0.7;
+    // Ambient "ready" pulse when idle, lerping toward the higher-intensity activation glow
+    const platePulse = 0.30 + Math.sin(time * 1.5) * 0.15;
+    plate.material.emissiveIntensity = platePulse + (plate.userData.glow || 0) * 0.65;
   } else if (t.type === "charge") {
     const pad = door3D.taskObjects[0];
     const onPad = playerPlanar.distanceTo(pad.position) < 0.9;
@@ -1459,6 +1461,8 @@ function updateTask(door3D, player, playerPlanar, delta) {
       t.ring.geometry.dispose();
       t.ring.geometry = new THREE.RingGeometry(0.55, 0.78, 32, 1, -Math.PI / 2, Math.max(0.001, ratio * Math.PI * 2));
     }
+    // Ambient "ready" pulse on the pad when the player isn't on it; ramps up when charging
+    pad.material.emissiveIntensity = 0.45 + Math.sin(time * 1.8) * 0.20 + ratio * 0.5;
     if (ratio >= 0.999) t.completed = true;
   } else if (t.type === "sequence") {
     const next = t.order[t.idx];
@@ -1497,12 +1501,16 @@ function updateTask(door3D, player, playerPlanar, delta) {
       t.completed = true;
     }
   } else if (t.type === "waypoints") {
-    t.list.forEach((wp) => {
+    t.list.forEach((wp, i) => {
       if (wp.userData.hit) return;
       wp.rotation.y += delta * 1.1;
+      // Ambient "ready" pulse — staggered phase per waypoint so they wave around the set
+      wp.material.emissive.setHex(0x223355);
+      wp.material.emissiveIntensity = 0.35 + Math.sin(time * 1.6 + i * 0.7) * 0.20;
       if (playerPlanar.distanceTo(wp.position) < 0.78) {
         wp.userData.hit = true;
         wp.material.emissive.setHex(0x114411);
+        wp.material.emissiveIntensity = 0.6;
         wp.material.color.setHex(0x6ee27a);
         t.hits += 1;
         if (t.hits >= t.target) t.completed = true;
