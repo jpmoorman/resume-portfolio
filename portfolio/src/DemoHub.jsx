@@ -301,10 +301,10 @@ export default function DemoHub() {
       threshold.position.set(0, 0.04, 0.05);
       threshold.receiveShadow = true;
 
-      // Colored portal glow inside the doorway — looks like a magic
-      // teleporter when the doors swing open. Two layers: a darker back
-      // wall (depth) and a glowing accent plane in front of it.
-      const portalDarkMat = new THREE.MeshStandardMaterial({ color: 0x07080c, roughness: 0.95 });
+      // Doorway chamber — sits behind the door leaves. Previously near-black
+      // (0x07080c) which leaked dark "panels" around side-facing doors. Now
+      // matches the lintel/jamb brown so the chamber recedes naturally.
+      const portalDarkMat = new THREE.MeshStandardMaterial({ color: 0x3a2f23, roughness: 0.85 });
       const passageBack = new THREE.Mesh(new THREE.PlaneGeometry(2.0, 3.1), portalDarkMat);
       passageBack.position.set(0, 1.55, -0.75);
       const portalGlowMat = new THREE.MeshBasicMaterial({
@@ -335,8 +335,9 @@ export default function DemoHub() {
           roughness: 0.4,
         })
       );
-      arch.position.y = 3.18;
-      arch.rotation.z = Math.PI;
+      // Arch curves UPWARD over the doorway (was previously rotated 180° to
+      // drape DOWN like a theater swag; flipped back for a clean door-arch read).
+      arch.position.y = 3.36;
       arch.castShadow = true;
 
       // Two door leaves with real proportions, raised panel mouldings, and proper knobs.
@@ -1139,22 +1140,31 @@ function buildPlayer() {
   torso.castShadow = true;
   root.add(torso);
 
-  // Overall bib (front rectangle of denim covering chest)
-  const bib = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.34, 0.06), denimMat);
-  bib.position.set(0, 0.6, 0.3);
+  // Dress shirt front (wider so it reads as a real shirt between the lapels)
+  const bib = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.42, 0.06), denimMat);
+  bib.position.set(0, 0.6, 0.32);
   bib.castShadow = true;
   root.add(bib);
-  // Black bow tie at the collar (two small wings)
-  const bowGeo = new THREE.BoxGeometry(0.08, 0.06, 0.04);
-  const bowL = new THREE.Mesh(bowGeo, buttonMat);
-  bowL.position.set(-0.045, 0.83, 0.34);
-  bowL.rotation.z = -0.2;
+  // White pocket square peeking out of the left breast pocket
+  const pocketSquare = new THREE.Mesh(
+    new THREE.BoxGeometry(0.06, 0.05, 0.025),
+    new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.4 })
+  );
+  pocketSquare.position.set(-0.14, 0.74, 0.34);
+  pocketSquare.rotation.z = 0.15;
+  root.add(pocketSquare);
+  // Bow tie at the collar — bigger so it reads at hub camera distance
+  const bowtieMat = new THREE.MeshStandardMaterial({ color: 0x000000, roughness: 0.25, metalness: 0.1 });
+  const bowGeo = new THREE.BoxGeometry(0.14, 0.10, 0.05);
+  const bowL = new THREE.Mesh(bowGeo, bowtieMat);
+  bowL.position.set(-0.07, 0.86, 0.345);
+  bowL.rotation.z = -0.22;
   const bowR = bowL.clone();
-  bowR.position.x = 0.045;
-  bowR.rotation.z = 0.2;
-  // Small black knot in the center
-  const bowKnot = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.04, 0.045), buttonMat);
-  bowKnot.position.set(0, 0.83, 0.345);
+  bowR.position.x = 0.07;
+  bowR.rotation.z = 0.22;
+  // Center knot tying the two wings
+  const bowKnot = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.07, 0.055), bowtieMat);
+  bowKnot.position.set(0, 0.86, 0.355);
   root.add(bowL, bowR, bowKnot);
   // Jacket lapels (black angled rectangles over the white shirt)
   const strapGeo = new THREE.BoxGeometry(0.08, 0.34, 0.06);
@@ -1208,30 +1218,28 @@ function buildPlayer() {
 
   // (Bond is clean-shaven — mustache removed in 007 redesign)
 
-  // "Hat" = slicked-back dark hair (kept as `hat` for animation compatibility).
-  // Flattened sphere on the crown, scaled wider than tall so it reads as a hairstyle.
-  const hat = new THREE.Mesh(
-    new THREE.SphereGeometry(0.42, 24, 16),
-    new THREE.MeshStandardMaterial({ color: 0x1a120b, roughness: 0.55 })
-  );
-  hat.position.y = 1.32;
-  hat.scale.set(1.02, 0.62, 1.05);
+  // Slicked-back dark hair: a back dome that sits low on the crown, plus a
+  // small widow's-peak triangle on the forehead. (Kept as `hat` for animation
+  // compatibility — buildPlayer's return + walk animation reference rig.hat.)
+  const hairMat = new THREE.MeshStandardMaterial({ color: 0x1a120b, roughness: 0.55 });
+  const hat = new THREE.Mesh(new THREE.SphereGeometry(0.40, 24, 16), hairMat);
+  hat.position.set(0, 1.30, -0.05);
+  hat.scale.set(1.04, 0.78, 1.02);
   hat.castShadow = true;
   root.add(hat);
 
-  // Subtle hair part: thin dark strip across the crown
-  const part = new THREE.Mesh(
-    new THREE.BoxGeometry(0.36, 0.012, 0.04),
-    new THREE.MeshStandardMaterial({ color: 0x0a0604, roughness: 0.6 })
-  );
-  part.position.set(0.04, 1.5, 0);
-  part.rotation.z = -0.08;
-  root.add(part);
+  // Widow's peak — small triangle on the forehead
+  const peak = new THREE.Mesh(new THREE.ConeGeometry(0.10, 0.18, 4), hairMat);
+  peak.position.set(0, 1.30, 0.36);
+  peak.rotation.x = Math.PI;       // point downward toward the brow
+  peak.rotation.y = Math.PI / 4;   // diamond orientation
+  peak.scale.set(1, 0.7, 0.35);    // flatten front-to-back so it hugs the head
+  root.add(peak);
 
   // Arms — short red sleeves + WHITE GLOVES
   const armMat = shirtMat;
   const armGeo = new THREE.BoxGeometry(0.14, 0.36, 0.14);
-  const gloveMat = new THREE.MeshStandardMaterial({ color: 0xffc9a0, roughness: 0.55 });
+  const gloveMat = new THREE.MeshStandardMaterial({ color: 0x0a0a0a, roughness: 0.4 });
   const gloveGeo = new THREE.SphereGeometry(0.13, 14, 10);
   const buildArm = (side) => {
     const g = new THREE.Group();
@@ -1247,6 +1255,16 @@ function buildPlayer() {
   };
   const armL = buildArm(-1);
   const armR = buildArm(1);
+  // Walther-style pistol silhouette in the right hand (Bond signature).
+  const gunMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.3, metalness: 0.6 });
+  const gunBody = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.09, 0.05), gunMat);
+  gunBody.position.set(0, -0.44, 0.10);
+  gunBody.castShadow = true;
+  const gunBarrel = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.022, 0.13, 10), gunMat);
+  gunBarrel.rotation.x = Math.PI / 2;
+  gunBarrel.position.set(0, -0.41, 0.18);
+  gunBarrel.castShadow = true;
+  armR.add(gunBody, gunBarrel);
   root.add(armL, armR);
 
   // Legs — denim, with BIG shoes
